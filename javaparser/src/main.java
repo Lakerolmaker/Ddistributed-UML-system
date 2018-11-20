@@ -44,17 +44,19 @@ public class main {
 		UMLPackage UMLpackage = new UMLPackage();
 		UMLpackage.name = file.getName();
 		
-		
 		String url = file.getName();
 		
 		File[] files = file.listFiles();
 		
-		
 		for (File newFile : files) {
 			if((newFile.isDirectory()) && (!newFile.isHidden())) {
-				Parse(newFile);
+				UMLPackage newPackage = Parse(newFile);
+				UMLpackage.addPackage(newPackage);
+				
 			}else if((newFile.isFile() && (!newFile.isHidden()) && (getFileType(newFile).equals(".java")) )){
-				UMLpackage.classes.add(parseFile(newFile));
+				UMLClass newClass = parseFile(newFile);
+				UMLpackage.classes.add(newClass);
+				
 			}
 		}
 		
@@ -79,10 +81,10 @@ public class main {
 			
 			UMLclass.name = classVisitor(file).name;
 			UMLclass.Methods = methodVistor(file);
+			UMLclass.Variables = variableVisitor(file);
 			
 			return UMLclass;
 		} catch (Exception e) {
-			UMLclass.name = "error";
 			return UMLclass;
 			
 		}
@@ -155,12 +157,13 @@ public class main {
     
 	}
 	
-	private static ArrayList<Variable> variableVisitor() {
+	private static ArrayList<Variable> variableVisitor(File file) throws Exception {
 		
 		
-		return new VoidVisitorAdapter<Object>() {
-	
-		public ArrayList<Variable> Variables = new ArrayList<Variable>();
+		ArrayList<Variable> Variables = new ArrayList<Variable>();
+
+		
+		VoidVisitorAdapter variableAdapter = new VoidVisitorAdapter<Object>() {
 			
 		@Override
 		public void visit(VariableDeclarationExpr n, Object arg)
@@ -191,7 +194,11 @@ public class main {
 				
 			}
 		}
-		}.Variables;
+		};
+		
+		variableAdapter.visit(JavaParser.parse(file), null);
+		
+		return Variables;
 		
 	}
 }
