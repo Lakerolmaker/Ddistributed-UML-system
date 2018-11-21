@@ -23,9 +23,6 @@ import FileClasses.Variable;
 import jdk.internal.org.objectweb.asm.Type;
 
 public class main {
-
-	
-	
 	
 	public static void main(String[] args) throws Exception {
 		
@@ -37,7 +34,6 @@ public class main {
 		System.out.println("done");
 		
 	}
-	
 	
 	
 	public static UMLPackage Parse(File file) {
