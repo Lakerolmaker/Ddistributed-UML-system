@@ -1,8 +1,10 @@
 package TCP;
 
-import java.io.DataInputStream;
-import java.io.FileOutputStream;
+import java.io.BufferedInputStream;
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 
@@ -15,9 +17,9 @@ import java.net.Socket;
  */
 
 public class FileServer extends Thread {
-	
+
 	private ServerSocket ss;
-	
+
 	public FileServer(int port) {
 		try {
 			ss = new ServerSocket(port);
@@ -25,7 +27,7 @@ public class FileServer extends Thread {
 			e.printStackTrace();
 		}
 	}
-	
+
 	public void run() {
 		while (true) {
 			try {
@@ -38,28 +40,31 @@ public class FileServer extends Thread {
 	}
 
 	private void saveFile(Socket clientSock) throws IOException {
-		DataInputStream dis = new DataInputStream(clientSock.getInputStream());
-		FileOutputStream fos = new FileOutputStream("testfile.jpg");
-		byte[] buffer = new byte[4096];
-		
-		int filesize = 15123; // Send file size in separate msg
-		int read = 0;
-		int totalRead = 0;
-		int remaining = filesize;
-		while((read = dis.read(buffer, 0, Math.min(buffer.length, remaining))) > 0) {
-			totalRead += read;
-			remaining -= read;
-			System.out.println("read " + totalRead + " bytes.");
-			fos.write(buffer, 0, read);
+		FileInputStream fis = null;
+		BufferedInputStream bis = null;
+		OutputStream os = null;
+		try {
+			File myFile = new File("D:\\Download\\yuki.zip");
+			byte b[] = new byte[(int) myFile.length()];
+			fis = new FileInputStream(myFile);
+			bis = new BufferedInputStream(fis);
+			bis.read(b, 0, b.length);
+			os = clientSock.getOutputStream();
+			os.write(b, 0, b.length);
+			os.flush();
+		} finally {
+			if (bis != null)
+				bis.close();
+			if (os != null)
+				os.close();
+			if (clientSock != null)
+				clientSock.close();
 		}
-		
-		fos.close();
-		dis.close();
 	}
-	
+
 	public static void main(String[] args) {
 		FileServer fs = new FileServer(1988);
-		fs.start();
+		fs.run();
 	}
 
 }
