@@ -30,18 +30,19 @@ public class canvas extends Application {
     @Override
     public void start(Stage primaryStage) {
 
-        Group root = new Group();
-        Scene s = new Scene(root);
-
-        addelements(50);
-        
-        final Canvas canvas = new Canvas(5000,5000);
-        GraphicsContext cx = canvas.getGraphicsContext2D();
+        addelements(110);
         
         creatElements();
-        drawElemements(cx);
         
-
+        double Canvas_height = getCanvasHeight();
+        Canvas canvas = new Canvas();
+        canvas.setHeight(Canvas_height);
+        canvas.setWidth(Canvas_height);
+       
+        GraphicsContext cx = canvas.getGraphicsContext2D();
+       
+        drawElemements(cx);
+       
         saveToImage(canvas);
         
        System.exit(0);
@@ -56,11 +57,35 @@ public class canvas extends Application {
     
 
     public double getCanvasWidth() {
-    	for(int x = 0; x < classes.length; x++) {
-    		for(int y = 0; y < classes[x].length; y++) {
+    	double maxWidth = 0;
+    	for(int y = 0; y < classes.length; y++) {
+    		for(int x = 0; x < classes[y].length; x++) {
+    			try {
+    				double newWidth = classes[y][x].getrightX();
+    				if( newWidth > maxWidth) {
+    					maxWidth = newWidth;
+    				}
+				} catch (Exception e) {}
     			
     		}
     	}
+    	return maxWidth + StandardValues.canvasPadding_Y;
+    }
+    
+    public double getCanvasHeight() {
+    	double maxHeight = 0;
+    	for(int y = 0; y < classes.length; y++) {
+    		for(int x = 0; x < classes[y].length; x++) {
+    			try {
+    				double newHeight = classes[y][x].getbottomY();
+    				if( newHeight > maxHeight) {
+    					maxHeight = newHeight;
+    				}
+				} catch (Exception e) {}
+    			
+    		}
+    	}
+    	return maxHeight + StandardValues.canvasPadding_Y;
     }
     
     public void drawElemements(GraphicsContext cx) {
