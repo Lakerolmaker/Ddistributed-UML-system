@@ -2,8 +2,8 @@ package MainPackage;
 
 public class StandardValues {
 
-	public static int width = 150;
-	public static int height = 75;
+	public static int width = 500;
+	public static int height = 600;
 	
 	
 }
