@@ -1,6 +1,7 @@
 package MainPackage;
 
 import java.io.File;
+import java.util.ArrayList;
 
 import javax.imageio.ImageIO;
 
@@ -19,6 +20,9 @@ import javafx.scene.image.WritableImage;
 
 public class canvas extends Application {
 
+	ArrayList<String> umlClasses = new ArrayList<String>();
+	DrawableCLass[][]  classes;
+	
     public static void main(String[] args) {
         launch(args);
     }
@@ -29,20 +33,115 @@ public class canvas extends Application {
         Group root = new Group();
         Scene s = new Scene(root);
 
-        final Canvas canvas = new Canvas(700,700);
-        GraphicsContext cx = canvas.getGraphicsContext2D();
-      
-       DrawableCLass newclass = new DrawableCLass();
-       newclass.draw(cx);
+        addelements(50);
         
-      
+        final Canvas canvas = new Canvas(5000,5000);
+        GraphicsContext cx = canvas.getGraphicsContext2D();
+        
+        creatElements();
+        drawElemements(cx);
+        
+
         saveToImage(canvas);
         
-        root.getChildren().add(canvas);
-        primaryStage.setScene(s);
-        primaryStage.show();
+       System.exit(0);
          
     }
+    
+    public void addelements(int amount) {
+    	for (int i = 0; i < amount; i++) {
+    		umlClasses.add("sugma");
+		}
+    }
+    
+
+    public double getCanvasWidth() {
+    	for(int x = 0; x < classes.length; x++) {
+    		for(int y = 0; y < classes[x].length; y++) {
+    			
+    		}
+    	}
+    }
+    
+    public void drawElemements(GraphicsContext cx) {
+    	for(int x = 0; x < classes.length; x++) {
+    		for(int y = 0; y < classes[x].length; y++) {
+    			try {
+    				classes[x][y].draw(cx);
+				} catch (Exception e) {}
+    		}
+    	}
+    }
+    
+    public void creatElements() {
+    	
+    	
+    	int sqr = (int) Math.sqrt(umlClasses.size());
+    	
+    	classes = new DrawableCLass[sqr + 1][sqr + 1];
+    	
+    	int X = 0;
+    	int Y = 0;
+    	
+    	for(int i = 0; i < umlClasses.size(); i++) {
+	 		
+    		classes[Y][X] = createClass(Y , X);
+    		
+    		//: checks for new row.
+    		if((i != 0) && ((i + 1) % sqr == 0)) {
+    			Y ++;
+    			X = 0;
+    		}else {
+    			//: increses the collum
+        		X ++;
+    		}
+    		
+		}
+    	
+    }
+    
+    public DrawableCLass createClass(int y , int x) {
+    	
+    	double ClassX = getpreviousX(y, x);
+    	double ClassY = getpreviousY(y, x);
+    	
+    	ClassX += StandardValues.padding;
+    	ClassY += StandardValues.padding;
+
+    	DrawableCLass newClass = new DrawableCLass(ClassX, ClassY);
+    	
+    	return newClass;
+    	
+    }
+       
+    public double getpreviousY(int y , int x) {
+    	
+    	double width = 0;
+    	
+    	try {
+			
+    		width = classes[y - 1][x].getbottomY();
+    		
+		} catch (Exception e) {}
+    	
+    	return width;
+    }
+    
+    public double getpreviousX(int y , int x) {
+    	
+    	double height = 0;
+    	
+    	try {
+			
+    		height = classes[y][x - 1].getrightX();
+    		
+		} catch (Exception e) {}
+    	
+    	return height;
+    	
+    }
+     
+     
     
     
     

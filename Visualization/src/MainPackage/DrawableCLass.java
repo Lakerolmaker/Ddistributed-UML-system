@@ -15,17 +15,23 @@ public class DrawableCLass {
 	public Rectangle border1;
 	public Rectangle border2;
 	public Rectangle border3;
-	
-
+		
 	private StandardValues standard = new StandardValues();
 	
-	public DrawableCLass() {
+	public DrawableCLass(double x , double y) {
 		super();
-		border1 = new Rectangle(10 , 10, standard.width, standard.height);
-		
+		border1 = new Rectangle(x , y, standard.width, standard.height);
 	}
-
 	
+	public double getrightX() {
+		return border1.getX() + border1.getWidth();
+	}
+	
+	public double getbottomY() {
+		return border1.getY() + border1.getHeight();
+	}
+	
+
 	public void draw(GraphicsContext cx) {
 		drawRectangle(cx, border1);
 		drawTitleBox(cx, border1);
@@ -42,8 +48,6 @@ public class DrawableCLass {
                      rect.getWidth(), 
                      rect.getHeight());
         cx.setStroke(Color.BLUE);
-
-
 
 	}
     private void drawTitleBox(GraphicsContext cx, Rectangle rect) {
