@@ -1,4 +1,4 @@
-package UML_Visualization;
+package MainPackage;
 
 /*
  * 
