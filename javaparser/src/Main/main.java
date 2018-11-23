@@ -31,7 +31,27 @@ public class main {
 		
 		UMLPackage project = Parse(new File(inputFolder_Path));
 		
+		ArrayList<UMLClass> classes = getClasses(project);
+		
 		System.out.println("done");
+		
+	}
+	
+	public static ArrayList<UMLClass> getClasses(UMLPackage inputPackage) {
+		
+		ArrayList<UMLClass> newPackage = new ArrayList<UMLClass>();
+		
+		if(!inputPackage.classes.isEmpty()) {
+			newPackage.addAll(inputPackage.classes);
+		}
+		
+		if(!inputPackage.Packages.isEmpty()) {
+			for (UMLPackage umlPackage : inputPackage.Packages) {
+				newPackage.addAll(getClasses(umlPackage));
+			}
+		}
+		
+		return newPackage;
 		
 	}
 	
@@ -198,4 +218,5 @@ public class main {
 		return Variables;
 		
 	}
+
 }
