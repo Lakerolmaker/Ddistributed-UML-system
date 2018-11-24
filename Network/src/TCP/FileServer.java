@@ -10,7 +10,7 @@ import java.net.Socket;
 
 /*
  * 
- *  A class for reciveing a file over TCP
+ *  A class for receiving a file over TCP
  *  
  * 
  * 

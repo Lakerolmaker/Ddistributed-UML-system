@@ -42,7 +42,13 @@ import java.nio.CharBuffer;
 import java.nio.channels.SocketChannel;
 import java.nio.charset.Charset;
 import java.nio.charset.CharsetDecoder;
+import java.util.ArrayList;
 import java.util.Scanner;
+
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 
 public class TCPClient {
 
@@ -50,6 +56,7 @@ public class TCPClient {
 	private static OutputStream os;
 	private static OutputStreamWriter osw;
 	private static BufferedWriter bw;
+	private PostClass post = new PostClass();
 		
 	public void start() {
 		
@@ -169,4 +176,25 @@ public class TCPClient {
 
 	        }
 	    }
+
+	    public JsonArray getFromNetwork(String nodeName) throws Exception {
+	    	
+			post.addPostParamter("action", "lookup");
+			post.addPostParamter("name", nodeName);
+
+			post.URL = "http://api.lakerolmaker.com/network_lookup.php";
+			
+			String reponse = post.post();
+	    	
+			
+	    	JsonParser jsonparser = new JsonParser();
+	    	
+	    	JsonElement root = jsonparser.parse(reponse);
+	    	
+	    	JsonArray obj = root.getAsJsonArray();
+
+	    	return obj;
+	    	
+		}
+
 }
