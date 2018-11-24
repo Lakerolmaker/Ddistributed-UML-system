@@ -105,12 +105,6 @@ public class TCPServer {
 									
 								}
 							}
-							
-							if(key.isWritable()) {
-								System.out.println("done");
-							}
-
-
 						}
 
 					}
