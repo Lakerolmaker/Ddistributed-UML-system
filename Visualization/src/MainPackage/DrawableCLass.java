@@ -65,6 +65,8 @@ public class DrawableCLass {
                 (rect.getHeight()/4)-10);
         cx.setStroke(Color.BLUE);
         boxBottomLine = rect.getHeight()/4;
+		
+		cx.strokeText("ClassTitle", rect.getX() + ((int) rect.getWidth()/2), rect.getY() + ((int) rect.getHeight()/8));
 
     }
     
@@ -85,6 +87,14 @@ public class DrawableCLass {
         boxBottomLine2 = (rect.getHeight()-boxBottomLine-10)/2;
 
         cx.setStroke(Color.BLUE);
+		
+		int height = 0;
+        
+        for (int i = 1; i <= 3; i++) {
+        	cx.strokeText("- Attribute" + i, rect.getX() + 50, rect.getY() + boxBottomLine + 30 + height);
+        	height += 20;
+        	
+        }
 
     }
 
@@ -104,6 +114,14 @@ public class DrawableCLass {
                 (rect.getHeight()-boxBottomLine-10)/2);
 
         cx.setStroke(Color.BLUE);
+		
+		int height = 0;
+        
+        for (int i = 1; i <= 4; i++) {
+        	cx.strokeText("+ Method" + i, rect.getX() + 50, rect.getY() + boxBottomLine + boxBottomLine2 + 30 + height);
+        	height += 20;
+        	
+        }
 
     }
 
