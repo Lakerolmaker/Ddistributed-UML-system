@@ -1,5 +1,6 @@
 package MainPackage;
 
+import FileClasses.UMLClass;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Line;
@@ -31,7 +32,6 @@ public class DrawableCLass {
 		return border1.getY() + border1.getHeight();
 	}
 	
-
 	public void draw(GraphicsContext cx) {
 		drawRectangle(cx, border1);
 		drawTitleBox(cx, border1);
@@ -67,6 +67,7 @@ public class DrawableCLass {
         boxBottomLine = rect.getHeight()/4;
 
     }
+    
     private void drawAttributeBox(GraphicsContext cx, Rectangle rect) {
         cx.setFill(Color.BLACK);
         cx.setStroke(Color.RED);
@@ -105,8 +106,5 @@ public class DrawableCLass {
         cx.setStroke(Color.BLUE);
 
     }
-
-
-
 
 }
