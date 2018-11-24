@@ -5,7 +5,7 @@ import java.util.ArrayList;
 
 /*
  * 
- *  A class for running a function later with arguments inside
+ *  A class for runing a function later with arguments inside
  *  
  * 
  * 

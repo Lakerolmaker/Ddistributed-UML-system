@@ -1,8 +1,9 @@
 package TCP;
 
-import java.io.DataOutputStream;
-import java.io.FileInputStream;
+import java.io.BufferedOutputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.Socket;
 
 /*
@@ -13,35 +14,42 @@ import java.net.Socket;
  * 
  */
 
-
 public class FileClient {
-	
+
 	private Socket s;
-	
-	public FileClient(String host, int port, String file) {
+
+	public FileClient(String host, int port) {
 		try {
 			s = new Socket(host, port);
-			sendFile(file);
+			sendFile(s);
 		} catch (Exception e) {
 			e.printStackTrace();
-		}		
-	}
-	
-	public void sendFile(String file) throws IOException {
-		DataOutputStream dos = new DataOutputStream(s.getOutputStream());
-		FileInputStream fis = new FileInputStream(file);
-		byte[] buffer = new byte[4096];
-		
-		while (fis.read(buffer) > 0) {
-			dos.write(buffer);
 		}
-		
-		fis.close();
-		dos.close();	
 	}
-	
+
+	public void sendFile(Socket sr) throws IOException {
+		FileOutputStream fos = null;
+		BufferedOutputStream bos = null;
+		InputStream is = null;
+		try {
+			is = sr.getInputStream();
+			fos = new FileOutputStream("C:\\Users\\duyka\\imafucktard.zip");
+			bos = new BufferedOutputStream(fos);
+			int c = 0;
+			byte[] b = new byte[2048];
+			while ((c = is.read(b)) > 0) {
+				bos.write(b, 0, c);
+			}
+		} finally {
+			if (is != null)
+				is.close();
+			if (bos != null)
+				bos.close();
+		}
+	}
+
 	public static void main(String[] args) {
-		FileClient fc = new FileClient("localhost", 1988, "cat.jpg");
+		FileClient fc = new FileClient("localhost", 1988);
 	}
 
 }

@@ -35,7 +35,7 @@ import javafx.beans.value.ObservableValue;
 
 /*
  * 
- *  A class for the servser side of the TCP connection
+ *  A class for the server side of the TCP connection
  * 
  *
  */
@@ -44,8 +44,9 @@ public class TCPServer {
 	
 	public Selector sel = null;
     public ServerSocketChannel server = null;
-    public SocketChannel socket = null;
+    private SocketChannel socket = null;
     String result = null;
+    public PostClass post = new PostClass();
 
     public void initializeServer(String hostname , int port) throws Exception{
         sel = Selector.open();
@@ -72,7 +73,8 @@ public class TCPServer {
     }
 
     public void start(RunnableArg<String> invocation) throws Exception {
-       Runnable serverCode = new Runnable() {
+      
+    	Runnable serverCode = new Runnable() {
 
 		@Override
 		public void run() {
@@ -86,7 +88,7 @@ public class TCPServer {
 		            Set readyKeys = sel.selectedKeys();
 		            Iterator it = readyKeys.iterator();
 
-		            		while (it.hasNext()) {
+		            	while (it.hasNext()) {
 		                SelectionKey key = (SelectionKey) it.next();
 		                it.remove();
 
@@ -97,20 +99,14 @@ public class TCPServer {
 		                    SelectionKey another = socket.register(sel, SelectionKey.OP_READ | SelectionKey.OP_WRITE);
 		                }
 		                
-		                if (key.isReadable()) {
-		                    String ret = readMessage(key);
-		                    if (ret.length() > 0) {
-		                    
-		                       invocation.setArg(ret);
-		                       invocation.run();
-		                    }
-		                }
 		                
-		                if (key.isWritable()) {
+		                if ( (key.isWritable()) || (key.isReadable()) ) {
 		                    String ret = readMessage(key);
 		                    socket = (SocketChannel) key.channel();
-		                    if (result.length() > 0) {
-		                    	System.out.println("Message recived : " + ret);
+		                    if (ret.length() > 0) {
+		                    	System.out.println("TCP-Server receiving message : " + ret);
+		                    	invocation.setArg(ret);
+			                    invocation.run();
 		                    }
 		                }
 		            }
@@ -121,7 +117,6 @@ public class TCPServer {
 				e.printStackTrace();
 			}
 	        
-			
 		}
         
        };
@@ -157,7 +152,7 @@ public class TCPServer {
 
     }
  
-    public String readMessage(SelectionKey key) {
+    public String readMessage(SelectionKey key) throws Exception {
         int nBytes = 0;
         socket = (SocketChannel) key.channel();
         ByteBuffer buf = ByteBuffer.allocate(1024);
@@ -167,11 +162,11 @@ public class TCPServer {
             Charset charset = Charset.forName("UTF-8");
             CharsetDecoder decoder = charset.newDecoder();
             CharBuffer charBuffer = decoder.decode(buf);
-            result = charBuffer.toString();
+            return charBuffer.toString();
         } catch (Exception e) {
-            e.printStackTrace();
+        	 throw new Exception("Failed to read message");
         }
-        return result;
+      
     }
     
 	private static int findFreePort() {
@@ -198,7 +193,28 @@ public class TCPServer {
 		throw new IllegalStateException("Could not find a free TCP/IP port to start embedded Jetty HTTP Server on");
 	}
 	
+	public ServerSocket getSocket() {
+		return this.server.socket();
+	}
 	
+	public void addToNetwork(String name) throws Exception {
+		
+		String ip = this.getSocket().getInetAddress().getHostAddress().toString();
+		String port = String.valueOf(this.getSocket().getLocalPort());
+		
+		
+		post.addPostParamter("action", "insert");
+		post.addPostParamter("name", name);
+		post.addPostParamter("ip", ip);
+		post.addPostParamter("port", port);
+		
+		post.URL = "http://api.lakerolmaker.com/network_lookup.php";
+		
+		post.post();
+	}
 	
+	public void getFromNetwork() {
+		
+	}
 	
 }
