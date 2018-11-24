@@ -100,7 +100,6 @@ public class TCPClient {
 		
 	}
 
-	
 	 	public SocketChannel client = null;
 	    public InetSocketAddress isa = null;
 	    public RecvThread rt = null;

@@ -63,4 +63,12 @@ public abstract class RunnableArg<dataType> implements Runnable {
     public dataType getArg() {
         return args.get(0);
     }
+    
+    public String geAsOne() {
+    	String buffer = "";
+    	for (dataType dataType : args) {
+    		buffer += dataType;
+		}
+    	return buffer;
+    }
 }

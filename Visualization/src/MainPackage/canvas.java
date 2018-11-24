@@ -30,22 +30,15 @@ import javafx.scene.image.WritableImage;
 
 public class canvas extends Application {
 
-	ArrayList<UMLClass> umlClasses = new ArrayList<UMLClass>();
-	DrawableCLass[][] classes;
+	public static ArrayList<UMLClass> umlClasses = new ArrayList<UMLClass>();
+	public static DrawableCLass[][] classes;
+	public static TCP tcp = new TCP();
 
-	public static void main(String[] args) {
-		launch(args);
-	}
-
-	@Override
-	public void start(Stage primaryStage) throws Exception {
-
-		Server server = new Server();
-	    server.start();
-	    server.bind(54555, 5000);
+	public static String[] systemArgs;
+	
+	public static void main(String[] args) throws Exception {
+		systemArgs = args;
 		
-		TCP tcp = new TCP();
-
 		tcp.server.initializeServer();
 
 		tcp.server.start(new RunnableArg<String>() {
@@ -54,57 +47,68 @@ public class canvas extends Application {
 			public void run() {
 
 				String raw_data = this.getArg();
-
+				System.out.println(raw_data.length());
 				Gson javaParser = new Gson();
 				TCP_data data = javaParser.fromJson(raw_data, TCP_data.class);
 
-				if (data.metaData.equals("parsed data")) {
+				if (data.metaData.equals("Parsed data")) {
 
 					UMLPackage project = javaParser.fromJson(data.data, UMLPackage.class);
-					
+
 					umlClasses = getClasses(project);
-
-					creatElements();
-
-					double Canvas_height = getCanvasHeight();
-					Canvas canvas = new Canvas();
-					canvas.setHeight(Canvas_height);
-					canvas.setWidth(Canvas_height);
-
-					GraphicsContext cx = canvas.getGraphicsContext2D();
-
-					drawElemements(cx);
-
-					saveToImage(canvas);
-
-					System.exit(0);
-
-					try {
-
-						JsonArray clients = tcp.client.getFromNetwork("client");
-
-						for (int i = 0; i < clients.size(); i++) {
-
-							JsonObject client = clients.get(i).getAsJsonObject();
-
-							String ip = client.get("ip").getAsString();
-							int port = client.get("port").getAsInt();
-
-							tcp.client.connect(ip, port);
-							tcp.client.send("file");
-
-						}
-
-					} catch (Exception e) {
-					}
+					
+					Lanchprogram();
 
 				}
 			}
+
 		});
 
 		tcp.server.post.addPostParamter("master_node", "true");
 		tcp.server.addToNetwork("visualizer");
+		
+	}
 
+	
+	public static void Lanchprogram() {
+		launch(systemArgs);
+	}
+	
+	@Override
+	public void start(Stage primaryStage) throws Exception {
+
+		creatElements();
+
+		double Canvas_height = getCanvasHeight();
+		Canvas canvas = new Canvas();
+		canvas.setHeight(Canvas_height);
+		canvas.setWidth(Canvas_height);
+
+		GraphicsContext cx = canvas.getGraphicsContext2D();
+
+		drawElemements(cx);
+
+		saveToImage(canvas);
+
+		System.exit(0);
+
+		try {
+
+			JsonArray clients = tcp.client.getFromNetwork("client");
+
+			for (int i = 0; i < clients.size(); i++) {
+
+				JsonObject client = clients.get(i).getAsJsonObject();
+
+				String ip = client.get("ip").getAsString();
+				int port = client.get("port").getAsInt();
+
+				tcp.client.connect(ip, port);
+				tcp.client.send("file");
+
+			}
+		} catch (Exception e) {
+		}
 	}
 
 	public static ArrayList<UMLClass> getClasses(UMLPackage inputPackage) {
@@ -116,13 +120,12 @@ public class canvas extends Application {
 		}
 
 		if (!inputPackage.Packages.isEmpty()) {
-			for (UMLPackage umlPackage : inputPackage.Packages) {
-				newPackage.addAll(getClasses(umlPackage));
+			for (int i = 0; i < inputPackage.Packages.size(); i++) {
+				newPackage.addAll(getClasses(inputPackage.Packages.get(i)));
 			}
 		}
 
 		return newPackage;
-
 	}
 
 	public double getCanvasWidth() {
@@ -184,7 +187,7 @@ public class canvas extends Application {
 			classes[Y][X] = createClass(Y, X);
 
 			// : checks for new row.
-			if ((i != 0) && ((i + 1) % sqr == 0)) {
+			if (X == sqr) {
 				Y++;
 				X = 0;
 			} else {

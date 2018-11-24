@@ -29,9 +29,6 @@ public class main {
 
 	public static void main(String[] args) throws Exception {
 
-		
-		
-		
 		TCP tcp = new TCP();
 
 		JsonArray clients = tcp.client.getFromNetwork("visualizer");
@@ -56,9 +53,9 @@ public class main {
 
 		String data_json = jsonParser.toJson(data);
 		
-		System.out.println(data_json);
+		System.out.println(data_json.length());
 		
-		tcp.client.send(data_json);
+		tcp.client.send(data_json + "\n");
 		
 		tcp.server.initializeServer();
 
