@@ -1,4 +1,5 @@
 package Main;
+
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
@@ -11,22 +12,72 @@ import com.github.javaparser.ast.body.Parameter;
 import com.github.javaparser.ast.body.VariableDeclarator;
 import com.github.javaparser.ast.expr.VariableDeclarationExpr;
 import com.github.javaparser.ast.visitor.VoidVisitorAdapter;
+import com.google.gson.Gson;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 
 import FileClasses.Method;
 import FileClasses.UMLClass;
 import FileClasses.UMLPackage;
 import FileClasses.Variable;
+import TCP.RunnableArg;
+import TCP.TCP;
+import TCP.TCP_data;
 
 public class main {
 
 	public static void main(String[] args) throws Exception {
 
+		
+		
+		
+		TCP tcp = new TCP();
+
+		JsonArray clients = tcp.client.getFromNetwork("visualizer");
+		JsonObject client = clients.get(0).getAsJsonObject();
+
+		String ip = client.get("ip").getAsString();
+		int port = client.get("port").getAsInt();
+
+		tcp.client.connect(ip, port);
+		
 		String CurrentDir = System.getProperty("user.dir");
 		String inputFolder_Path = CurrentDir + "/InputFiles";
 
 		UMLPackage project = Parse(new File(inputFolder_Path));
 
-		System.out.println("done");
+		Gson jsonParser = new Gson();
+		String project_json = jsonParser.toJson(project);
+		
+		TCP_data data = new TCP_data();
+		data.setData(project_json);
+		data.setMetaData("Parsed data");
+
+		String data_json = jsonParser.toJson(data);
+		
+		System.out.println(data_json);
+		
+		tcp.client.send(data_json);
+		
+		tcp.server.initializeServer();
+
+		tcp.server.start(new RunnableArg<String>() {
+
+			@Override
+			public void run() {
+
+				String CurrentDir = System.getProperty("user.dir");
+				String inputFolder_Path = CurrentDir + "/InputFiles";
+
+				UMLPackage project = Parse(new File(inputFolder_Path));
+
+				System.out.println("done");
+
+			}
+		});
+		
+		tcp.server.addToNetwork("parser");
 
 	}
 

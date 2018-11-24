@@ -5,10 +5,17 @@ import java.util.ArrayList;
 
 import javax.imageio.ImageIO;
 
+import com.esotericsoftware.kryonet.Server;
+import com.google.gson.Gson;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 import com.sun.corba.se.impl.orbutil.graph.Graph;
 
 import FileClasses.UMLClass;
 import FileClasses.UMLPackage;
+import TCP.RunnableArg;
+import TCP.TCP;
+import TCP.TCP_data;
 import javafx.application.Application;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.stage.Stage;
@@ -23,7 +30,7 @@ import javafx.scene.image.WritableImage;
 
 public class canvas extends Application {
 
-	ArrayList<String> umlClasses = new ArrayList<String>();
+	ArrayList<UMLClass> umlClasses = new ArrayList<UMLClass>();
 	DrawableCLass[][] classes;
 
 	public static void main(String[] args) {
@@ -31,27 +38,72 @@ public class canvas extends Application {
 	}
 
 	@Override
-	public void start(Stage primaryStage) {
+	public void start(Stage primaryStage) throws Exception {
 
-		// : Adds this when connected with parser
-		// umlClasses = getClasses(null;);
+		Server server = new Server();
+	    server.start();
+	    server.bind(54555, 5000);
+		
+		TCP tcp = new TCP();
 
-		addelements(110);
+		tcp.server.initializeServer();
 
-		creatElements();
+		tcp.server.start(new RunnableArg<String>() {
 
-		double Canvas_height = getCanvasHeight();
-		Canvas canvas = new Canvas();
-		canvas.setHeight(Canvas_height);
-		canvas.setWidth(Canvas_height);
+			@Override
+			public void run() {
 
-		GraphicsContext cx = canvas.getGraphicsContext2D();
+				String raw_data = this.getArg();
 
-		drawElemements(cx);
+				Gson javaParser = new Gson();
+				TCP_data data = javaParser.fromJson(raw_data, TCP_data.class);
 
-		saveToImage(canvas);
+				if (data.metaData.equals("parsed data")) {
 
-		System.exit(0);
+					UMLPackage project = javaParser.fromJson(data.data, UMLPackage.class);
+					
+					umlClasses = getClasses(project);
+
+					creatElements();
+
+					double Canvas_height = getCanvasHeight();
+					Canvas canvas = new Canvas();
+					canvas.setHeight(Canvas_height);
+					canvas.setWidth(Canvas_height);
+
+					GraphicsContext cx = canvas.getGraphicsContext2D();
+
+					drawElemements(cx);
+
+					saveToImage(canvas);
+
+					System.exit(0);
+
+					try {
+
+						JsonArray clients = tcp.client.getFromNetwork("client");
+
+						for (int i = 0; i < clients.size(); i++) {
+
+							JsonObject client = clients.get(i).getAsJsonObject();
+
+							String ip = client.get("ip").getAsString();
+							int port = client.get("port").getAsInt();
+
+							tcp.client.connect(ip, port);
+							tcp.client.send("file");
+
+						}
+
+					} catch (Exception e) {
+					}
+
+				}
+			}
+		});
+
+		tcp.server.post.addPostParamter("master_node", "true");
+		tcp.server.addToNetwork("visualizer");
 
 	}
 
@@ -71,12 +123,6 @@ public class canvas extends Application {
 
 		return newPackage;
 
-	}
-
-	public void addelements(int amount) {
-		for (int i = 0; i < amount; i++) {
-			umlClasses.add("sugma");
-		}
 	}
 
 	public double getCanvasWidth() {
