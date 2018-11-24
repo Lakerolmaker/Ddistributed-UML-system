@@ -60,7 +60,7 @@ public class TCPServer {
 		int port = findFreePort();
 		InetAddress adress = InetAddress.getLocalHost();
 		server = new ServerSocket(port, 10, adress);
-		System.out.println("running server on - " + this.getIp() + " : " + this.getPort());
+		System.out.println("Server running on - " + this.getIp() + " : " + this.getPort());
 	}
 	
 	public String getIp() {

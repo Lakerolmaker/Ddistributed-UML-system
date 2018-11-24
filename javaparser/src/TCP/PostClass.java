@@ -64,9 +64,6 @@ public class PostClass {
 		}
 		
 		in.close();
-
-		//print result
-		System.out.println(response.toString());
 		
 		return response.toString();
 

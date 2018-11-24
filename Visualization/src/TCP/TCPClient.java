@@ -57,49 +57,7 @@ public class TCPClient {
 	private static OutputStreamWriter osw;
 	private static BufferedWriter bw;
 	private PostClass post = new PostClass();
-		
-	public void start() {
-		
-		Scanner scanner = new Scanner(System.in);
-		
-		while(true) {
-			if(scanner.hasNextLine()) {
-				
-				String input = scanner.nextLine();
-				
-				this.send(input);
-				
-			}
-		}
-		
-	}
-	
-	public void setup() {
-		
-		String ip = "";
-		int port = 8888;
-		int index = 1;
-		System.out.println("IP-Adress: ");
-		
-		Scanner scanner = new Scanner(System.in);
-		
-		while(index < 3) {
-			if(scanner.hasNextLine()) {
-				if(index == 1) {
-					ip = scanner.nextLine();
-					System.out.println("Port: ");
-					index++;
-				}else if(index == 2) {
-					port = scanner.nextInt();
-					index++;
-				}
-			}	
-		}
-		this.connect(ip, port);
-		this.start();
-		
-	}
-
+			
 	 	public SocketChannel client = null;
 	    public InetSocketAddress isa = null;
 	    public RecvThread rt = null;

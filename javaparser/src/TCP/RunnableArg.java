@@ -71,6 +71,4 @@ public abstract class RunnableArg<dataType> implements Runnable {
 		}
     	return buffer;
     }
-    
-
 }
