@@ -1,6 +1,8 @@
 package MainPackage;
 
+import FileClasses.Method;
 import FileClasses.UMLClass;
+import FileClasses.Variable;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Line;
@@ -19,8 +21,9 @@ public class DrawableCLass {
 		
 	private StandardValues standard = new StandardValues();
 	
-	public DrawableCLass(double x , double y) {
+	public DrawableCLass(double x , double y, UMLClass umlclass) {
 		super();
+		this.UMLclass = umlclass;
 		border1 = new Rectangle(x , y, standard.width, standard.height);
 	}
 	
@@ -66,7 +69,10 @@ public class DrawableCLass {
         cx.setStroke(Color.BLUE);
         boxBottomLine = rect.getHeight()/4;
 		
-		cx.strokeText("ClassTitle", rect.getX() + ((int) rect.getWidth()/2), rect.getY() + ((int) rect.getHeight()/8));
+        double titleX = rect.getX() + ((int) rect.getWidth()/2);
+        double titleY = rect.getY() + ((int) rect.getHeight()/8);
+        
+		cx.strokeText( UMLclass.name , titleX,  titleY);
 
     }
     
@@ -89,13 +95,19 @@ public class DrawableCLass {
         cx.setStroke(Color.BLUE);
 		
 		int height = 0;
-        
-        for (int i = 1; i <= 3; i++) {
-        	cx.strokeText("- Attribute" + i, rect.getX() + 50, rect.getY() + boxBottomLine + 30 + height);
+		for(int i = 0; i < UMLclass.Variables.size(); i++) {
+			
+			double attributeX = rect.getX() + 50;
+			double attributeY = rect.getY() + boxBottomLine + 30 + height;
+			
+			Variable var = UMLclass.Variables.get(i);
+			String attibuteValue = "+" + var.name + ":" + var.type;
+			
+			cx.strokeText(attibuteValue, attributeX, attributeY );
+			
         	height += 20;
-        	
-        }
-
+		}
+		
     }
 
     private void drawMethodBox(GraphicsContext cx, Rectangle rect) {
@@ -116,9 +128,16 @@ public class DrawableCLass {
         cx.setStroke(Color.BLUE);
 		
 		int height = 0;
-        
-        for (int i = 1; i <= 4; i++) {
-        	cx.strokeText("+ Method" + i, rect.getX() + 50, rect.getY() + boxBottomLine + boxBottomLine2 + 30 + height);
+		for(int i = 0; i < UMLclass.Methods.size(); i++) {
+			
+			double methodX = rect.getX() + 50;
+			double methodY = rect.getY() + boxBottomLine + boxBottomLine2 + 30 + height;
+			
+			Method var = UMLclass.Methods.get(i);
+			String methodValue = "+" + var.name + "():" + var.returnType;
+			
+        	cx.strokeText(methodValue, methodX , methodY );
+        	
         	height += 20;
         	
         }

@@ -4,13 +4,9 @@ import java.io.File;
 import java.util.ArrayList;
 
 import javax.imageio.ImageIO;
-
-import com.esotericsoftware.kryonet.Server;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import com.sun.corba.se.impl.orbutil.graph.Graph;
-
 import FileClasses.UMLClass;
 import FileClasses.UMLPackage;
 import TCP.RunnableArg;
@@ -19,12 +15,6 @@ import TCP.TCP_data;
 import javafx.application.Application;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.stage.Stage;
-import javafx.scene.Group;
-import javafx.scene.Scene;
-import javafx.stage.Stage;
-import javafx.scene.shape.Rectangle;
-import javafx.scene.*;
-import javafx.scene.paint.*;
 import javafx.scene.canvas.*;
 import javafx.scene.image.WritableImage;
 
@@ -184,7 +174,7 @@ public class canvas extends Application {
 
 		for (int i = 0; i < umlClasses.size(); i++) {
 
-			classes[Y][X] = createClass(Y, X);
+			classes[Y][X] = createClass(Y, X , umlClasses.get(i));
 
 			// : checks for new row.
 			if (X == sqr) {
@@ -199,7 +189,7 @@ public class canvas extends Application {
 
 	}
 
-	public DrawableCLass createClass(int y, int x) {
+	public DrawableCLass createClass(int y, int x, UMLClass umlClass) {
 
 		double ClassX = getpreviousX(y, x);
 		double ClassY = getpreviousY(y, x);
@@ -207,7 +197,7 @@ public class canvas extends Application {
 		ClassX += StandardValues.padding;
 		ClassY += StandardValues.padding;
 
-		DrawableCLass newClass = new DrawableCLass(ClassX, ClassY);
+		DrawableCLass newClass = new DrawableCLass(ClassX, ClassY, umlClass);
 
 		return newClass;
 
