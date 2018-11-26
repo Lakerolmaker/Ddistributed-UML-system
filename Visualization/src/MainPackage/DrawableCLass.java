@@ -7,6 +7,8 @@ import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Line;
 import javafx.scene.shape.Rectangle;
+import javafx.scene.text.Font;
+import javafx.scene.text.Text;
 
 public class DrawableCLass {
 
@@ -18,130 +20,165 @@ public class DrawableCLass {
 	public Rectangle border1;
 	public Rectangle border2;
 	public Rectangle border3;
-		
+
+	// : The width of the longest text
+	private double maxWidth;
+
 	private StandardValues standard = new StandardValues();
-	
-	public DrawableCLass(double x , double y, UMLClass umlclass) {
+
+	public DrawableCLass(double x, double y, UMLClass umlclass) {
 		super();
 		this.UMLclass = umlclass;
-		border1 = new Rectangle(x , y, standard.width, standard.height);
+		
+		//: Get's the max width;
+		maxWidth = getMaxWidht();
+		
+		border1 = new Rectangle(x, y, maxWidth, standard.height);
 	}
-	
+
 	public double getrightX() {
 		return border1.getX() + border1.getWidth();
 	}
-	
+
 	public double getbottomY() {
 		return border1.getY() + border1.getHeight();
 	}
-	
+
 	public void draw(GraphicsContext cx) {
 		drawRectangle(cx, border1);
 		drawTitleBox(cx, border1);
 		drawAttributeBox(cx, border1);
 		drawMethodBox(cx, border1);
 	}
-	
-	private void drawRectangle(GraphicsContext cx,Rectangle rect){
-        cx.setFill(Color.BLACK);
-        cx.setStroke(Color.RED);
-        cx.setLineWidth(2);
-        cx.fillRect(rect.getX(),      
-                     rect.getY(), 
-                     rect.getWidth(), 
-                     rect.getHeight());
-        cx.setStroke(Color.BLUE);
+
+	private void drawRectangle(GraphicsContext cx, Rectangle rect) {
+		cx.setFill(Color.BLACK);
+		cx.setStroke(Color.RED);
+		cx.setLineWidth(2);
+		cx.fillRect(rect.getX(), rect.getY(), rect.getWidth(), rect.getHeight());
+		cx.setStroke(Color.BLUE);
 
 	}
-    private void drawTitleBox(GraphicsContext cx, Rectangle rect) {
-        cx.setFill(Color.BLACK);
-        cx.setStroke(Color.RED);
-        cx.setLineWidth(2);
-        cx.fillRect(rect.getX(),
-                rect.getY(),
-                rect.getWidth(),
-                rect.getHeight()/4);
-        cx.setFill(Color.WHITE);
-        cx.fillRect(rect.getX()+5,
-                rect.getY()+5,
-                rect.getWidth()-10,
-                (rect.getHeight()/4)-10);
-        cx.setStroke(Color.BLUE);
-        boxBottomLine = rect.getHeight()/4;
+
+	private void drawTitleBox(GraphicsContext cx, Rectangle rect) {
+		cx.setFill(Color.BLACK);
+		cx.setStroke(Color.RED);
+		cx.setLineWidth(2);
+		cx.fillRect(rect.getX(), rect.getY(), rect.getWidth(), rect.getHeight() / 4);
+		cx.setFill(Color.WHITE);
+		cx.fillRect(rect.getX() + 5, rect.getY() + 5, rect.getWidth() - 10, (rect.getHeight() / 4) - 10);
 		
-        double titleX = rect.getX() + ((int) rect.getWidth()/2);
-        double titleY = rect.getY() + ((int) rect.getHeight()/8);
-        
-		cx.strokeText( UMLclass.name , titleX,  titleY);
-
-    }
-    
-    private void drawAttributeBox(GraphicsContext cx, Rectangle rect) {
-        cx.setFill(Color.BLACK);
-        cx.setStroke(Color.RED);
-        cx.setLineWidth(2);
-        cx.fillRect(rect.getX(),
-                rect.getY()+boxBottomLine,
-                rect.getWidth(),
-                (rect.getHeight()-boxBottomLine)/2);
-        cx.setFill(Color.WHITE);
-
-        cx.fillRect(rect.getX()+5,
-                rect.getY()+boxBottomLine+5,
-                rect.getWidth()-10,
-                (rect.getHeight()-boxBottomLine-10)/2);
-        boxBottomLine2 = (rect.getHeight()-boxBottomLine-10)/2;
-
-        cx.setStroke(Color.BLUE);
 		
+		cx.setFont(StandardValues.font);
+		cx.setStroke(Color.AQUA);
+		boxBottomLine = rect.getHeight() / 4;
+
+		double titleX = rect.getX() + ((int) rect.getWidth() / 2);
+		double titleY = rect.getY() + ((int) rect.getHeight() / 8);
+
+		cx.strokeText(gettitleText(), titleX, titleY);
+
+	}
+
+	private String gettitleText() {
+		return UMLclass.name;
+	}
+
+	private void drawAttributeBox(GraphicsContext cx, Rectangle rect) {
+		cx.setFill(Color.BLACK);
+		cx.setStroke(Color.RED);
+		cx.setLineWidth(2);
+		cx.fillRect(rect.getX(), rect.getY() + boxBottomLine, rect.getWidth(), (rect.getHeight() - boxBottomLine) / 2);
+		cx.setFill(Color.WHITE);
+
+		cx.fillRect(rect.getX() + 5, rect.getY() + boxBottomLine + 5, rect.getWidth() - 10,
+				(rect.getHeight() - boxBottomLine - 10) / 2);
+		
+		
+		boxBottomLine2 = (rect.getHeight() - boxBottomLine - 10) / 2;
+		cx.setFont(StandardValues.font);
+		cx.setStroke(Color.AQUA);
+
 		int height = 0;
-		for(int i = 0; i < UMLclass.Variables.size(); i++) {
-			
+		for (int i = 0; i < UMLclass.Variables.size(); i++) {
+
 			double attributeX = rect.getX() + 50;
 			double attributeY = rect.getY() + boxBottomLine + 30 + height;
-			
-			Variable var = UMLclass.Variables.get(i);
-			String attibuteValue = "+" + var.name + ":" + var.type;
-			
-			cx.strokeText(attibuteValue, attributeX, attributeY );
-			
-        	height += 20;
+
+			String attibuteValue = getAttributeText(UMLclass.Variables.get(i));
+
+			cx.strokeText(attibuteValue, attributeX, attributeY);
+
+			height += 20;
 		}
-		
-    }
 
-    private void drawMethodBox(GraphicsContext cx, Rectangle rect) {
-        cx.setFill(Color.BLACK);
-        cx.setStroke(Color.RED);
-        cx.setLineWidth(2);
-        cx.fillRect(rect.getX(),
-                rect.getY()+boxBottomLine2+boxBottomLine,
-                rect.getWidth(),
-                (rect.getHeight()-boxBottomLine2)/2);
-        cx.setFill(Color.WHITE);
+	}
 
-        cx.fillRect(rect.getX()+5,
-                rect.getY()+boxBottomLine2+boxBottomLine+5,
-                rect.getWidth()-10,
-                (rect.getHeight()-boxBottomLine-10)/2);
+	private String getAttributeText(Variable var) {
+		return "+" + var.name + ":" + var.type;
+	}
 
-        cx.setStroke(Color.BLUE);
-		
+	private void drawMethodBox(GraphicsContext cx, Rectangle rect) {
+		cx.setFill(Color.BLACK);
+		cx.setStroke(Color.RED);
+		cx.setLineWidth(2);
+		cx.fillRect(rect.getX(), rect.getY() + boxBottomLine2 + boxBottomLine, rect.getWidth(),
+				(rect.getHeight() - boxBottomLine2) / 2);
+		cx.setFill(Color.WHITE);
+
+		cx.fillRect(rect.getX() + 5, rect.getY() + boxBottomLine2 + boxBottomLine + 5, rect.getWidth() - 10,
+				(rect.getHeight() - boxBottomLine - 10) / 2);
+
+		cx.setFont(StandardValues.font);
+		cx.setStroke(Color.AQUA);
+
 		int height = 0;
-		for(int i = 0; i < UMLclass.Methods.size(); i++) {
-			
+		for (int i = 0; i < UMLclass.Methods.size(); i++) {
+
 			double methodX = rect.getX() + 50;
 			double methodY = rect.getY() + boxBottomLine + boxBottomLine2 + 30 + height;
-			
-			Method var = UMLclass.Methods.get(i);
-			String methodValue = "+" + var.name + "():" + var.returnType;
-			
-        	cx.strokeText(methodValue, methodX , methodY );
-        	
-        	height += 20;
-        	
-        }
 
-    }
+			String methodValue = getMethodText(UMLclass.Methods.get(i));
+
+			height += 20;
+		}
+
+	}
+
+	private String getMethodText(Method var) {
+		return "+" + var.name + "():" + var.returnType;
+	}
+
+	//: compares all values in the class , to find the largest
+	private double getMaxWidht() {
+		double currentMax = StandardValues.width;
+
+		double titleWidth = getTextWidth(this.gettitleText());
+		if (titleWidth > currentMax) {
+			currentMax = titleWidth;
+		}
+
+		for (Variable var : UMLclass.Variables) {
+			double varWidth = getTextWidth(this.getAttributeText(var));
+			if (varWidth > currentMax) {
+				currentMax = varWidth;
+			}
+		}
+
+		for (Method var : UMLclass.Methods) {
+			double methodWidth = getTextWidth(this.getMethodText(var));
+			if (methodWidth > currentMax) {
+				currentMax = methodWidth;
+			}
+		}
+
+		return currentMax;
+	}
+
+	private double getTextWidth(String msg) {
+		final Text text = new Text(msg);
+		text.setFont(StandardValues.font);
+		return text.getLayoutBounds().getWidth();
+	}
 
 }

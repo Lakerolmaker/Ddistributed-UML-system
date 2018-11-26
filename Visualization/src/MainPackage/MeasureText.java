@@ -30,9 +30,6 @@ public class MeasureText extends Application {
 		final Text text = new Text(msg);
 		Font font = Font.font("Arial", 20);
 		text.setFont(font);
-		//new Scene(new Group(text));
-		
-		//text.applyCss(); 
 
 		final double width = text.getLayoutBounds().getWidth(); //the width in pixels of the text is here
 		
