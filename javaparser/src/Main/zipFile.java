@@ -36,6 +36,7 @@ public class zipFile {
     }
     
     public static void main (String[] args) {
-    	compress("/Users/andy13/Documents/zipTest"); //enter the path of the file and the new compressed file will be generated in the same location
+    	compress("../MiniProject-DistributedSystem-master/javaparser/InputFiles"); 
+	   	//enter the path of the file and the new compressed file will be generated in the same location
     }
 }
