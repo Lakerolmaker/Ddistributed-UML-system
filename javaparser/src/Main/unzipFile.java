@@ -9,8 +9,8 @@ import java.util.zip.ZipInputStream;
 
 public class unzipFile {
     public static void main(String[] args) throws IOException {
-        String fileZip = "/Users/andy13/Documents/zipTest/file.zip";
-        File destDir = new File("/Users/andy13/Documents/zipTest");
+        String fileZip = "../MiniProject-DistributedSystem-master/javaparser/..";
+        File destDir = new File("../MiniProject-DistributedSystem-master/javaparser/..");
         byte[] buffer = new byte[1024];
         ZipInputStream zis = new ZipInputStream(new FileInputStream(fileZip));
         ZipEntry zipEntry = zis.getNextEntry();
