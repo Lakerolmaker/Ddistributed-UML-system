@@ -1,4 +1,4 @@
-package MainPackage;
+	package MainPackage;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -18,7 +18,7 @@ import javafx.stage.Stage;
 import javafx.scene.canvas.*;
 import javafx.scene.image.WritableImage;
 
-public class canvas extends Application {
+public class NODE_Visualizer extends Application {
 
 	public static ArrayList<UMLClass> umlClasses = new ArrayList<UMLClass>();
 	public static DrawableCLass[][] classes;
@@ -30,7 +30,6 @@ public class canvas extends Application {
 		systemArgs = args;
 		
 		tcp.server.initializeServer();
-
 		tcp.server.start(new RunnableArg<String>() {
 
 			@Override

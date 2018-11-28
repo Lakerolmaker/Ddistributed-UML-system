@@ -154,7 +154,7 @@ public class TCPServer {
 		BufferedInputStream bis = null;
 		OutputStream os = null;
 		File newfile = null;
-		String pathName = zip.CurrentDir + File.separator + "newfile.zip";
+		String pathName = zip.CurrentDir + File.separator + "testfile" + File.separator + "newfile.zip";
 		try {
 			newfile = new File(pathName);
 			byte b[] = new byte[(int) newfile.length()];
@@ -164,7 +164,7 @@ public class TCPServer {
 			os = clientSock.getOutputStream();
 			os.write(b, 0, b.length);
 			os.flush();
-		}finally {
+		} finally {
 			if (bis != null)
 				bis.close();
 			if (fis != null)

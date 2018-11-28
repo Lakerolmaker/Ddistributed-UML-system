@@ -107,6 +107,8 @@ public class TCPClient {
 		} finally {
 			if (is != null)
 				is.close();
+			if (fos != null)
+				fos.close();
 			if (bos != null)
 				bos.close();
 		}

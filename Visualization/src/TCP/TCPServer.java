@@ -13,9 +13,11 @@ import java.io.DataInputStream;
  */
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.io.RandomAccessFile;
 import java.net.InetAddress;
@@ -60,13 +62,12 @@ public class TCPServer {
 		int port = findFreePort();
 		InetAddress adress = InetAddress.getLocalHost();
 		server = new ServerSocket(port, 10, adress);
-		System.out.println("Server running on - " + this.getIp() + " : " + this.getPort());
 	}
-	
+
 	public String getIp() {
 		return server.getInetAddress().getHostAddress();
 	}
-	
+
 	public int getPort() {
 		return server.getLocalPort();
 	}
@@ -87,9 +88,8 @@ public class TCPServer {
 						InputStream strm = connectionSocket.getInputStream();
 						InputStreamReader in = new InputStreamReader(strm);
 						BufferedReader br = new BufferedReader(in);
-						 	 
+
 						String dataString = br.readLine();
-						
 
 						invocation.setArg(dataString);
 						invocation.run();
@@ -106,67 +106,61 @@ public class TCPServer {
 		};
 
 		new Thread(serverCode).start();
+
+		System.out.println("TCP server running on -" + this.getIp() + ":" + this.getPort());
 	}
 
-	public void writeMessage(SocketChannel socket, String ret) {
+	public void startFileServer(RunnableArg<File> invocation) {
 
-		if (ret.equals("quit") || ret.equals("shutdown")) {
-			return;
-		}
-		File file = new File(ret);
-		try {
+		Runnable serverCode = new Runnable() {
 
-			RandomAccessFile rdm = new RandomAccessFile(file, "r");
-			FileChannel fc = rdm.getChannel();
-			ByteBuffer buffer = ByteBuffer.allocate(1024);
-			fc.read(buffer);
-			buffer.flip();
+			@Override
+			public void run() {
 
-			Charset set = Charset.forName("UTF-8");
-			CharsetDecoder dec = set.newDecoder();
-			CharBuffer charBuf = dec.decode(buffer);
-			System.out.println(charBuf.toString());
-			buffer = ByteBuffer.wrap((charBuf.toString()).getBytes());
-			int nBytes = socket.write(buffer);
-			System.out.println("nBytes = " + nBytes);
-			result = null;
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
+				while (true) {
+					try {
+						Socket clientSock = server.accept();
+						File newfile = saveFile(clientSock);
+						invocation.addArgs(newfile);
+						invocation.run();
+					} catch (IOException e) {
+						e.printStackTrace();
+					}
+				}
 
-	}
-
-	public String readMessage(SelectionKey key) throws Exception {
-		int nBytes = 0;
-		socket = (SocketChannel) key.channel();
-		ByteBuffer buf = ByteBuffer.allocate(1024);
-		try {
-			nBytes = socket.read(buf);
-			buf.flip();
-			Charset charset = Charset.forName("UTF-8");
-			CharsetDecoder decoder = charset.newDecoder();
-			CharBuffer charBuffer = decoder.decode(buf);
-			System.out.println("Recievied " + nBytes + " bytes");
-			return charBuffer.toString();
-		} catch (Exception e) {
-			throw new Exception("Failed to read message");
-		}
-
-	}
-
-	private boolean isDone(SelectionKey key) {
-		int nBytes = 0;
-		socket = (SocketChannel) key.channel();
-		ByteBuffer buf = ByteBuffer.allocate(1024);
-		try {
-			nBytes = socket.read(buf);
-			if (nBytes > 0) {
-				return false;
-			} else {
-				return true;
 			}
-		} catch (Exception e) {
-			return true;
+
+		};
+
+		serverCode.run();
+
+		System.out.println("TCP file-server running on -" + this.getIp() + ":" + this.getPort());
+
+	}
+
+	@SuppressWarnings("finally")
+	private File saveFile(Socket clientSock) throws IOException {
+		FileInputStream fis = null;
+		BufferedInputStream bis = null;
+		OutputStream os = null;
+		File newfile = null;
+		try {
+			newfile = new File("newfile.zip");
+			byte b[] = new byte[(int) newfile.length()];
+			fis = new FileInputStream(newfile);
+			bis = new BufferedInputStream(fis);
+			bis.read(b, 0, b.length);
+			os = clientSock.getOutputStream();
+			os.write(b, 0, b.length);
+			os.flush();
+		} finally {
+			if (bis != null)
+				bis.close();
+			if (os != null)
+				os.close();
+			if (clientSock != null)
+				clientSock.close();
+			return newfile;
 		}
 	}
 
