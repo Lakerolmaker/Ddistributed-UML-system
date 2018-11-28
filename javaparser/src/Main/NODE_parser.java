@@ -49,7 +49,6 @@ public class NODE_parser {
 
 				File newfile = this.getArg();
 	
-
 				UMLPackage project = Parse(newfile);
 
 				Gson jsonParser = new Gson();

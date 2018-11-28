@@ -1,6 +1,7 @@
 package TCP;
 
 import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
 import java.io.DataInputStream;
 
@@ -14,6 +15,7 @@ import java.io.DataInputStream;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -124,16 +126,16 @@ public class TCPServer {
 							clientSock = server.accept();
 						
 						File newfile = saveFile(clientSock);
-						System.out.println(	"file created : " + newfile.exists());
 					
 						zip.uncompress(newfile);
 						
 						invocation.addArgs(newfile);
 						invocation.run();
+						
 						} catch (IOException e) {
 							System.err.println("Failed to fetch file : " + e.getMessage());
-						}catch(Exception e) {
-								System.err.println("Failed to uncompress file : " + e.getMessage());
+						}catch(Exception en) {
+								System.err.println("Failed to uncompress file : " + en.getMessage());
 						}
 					
 				}
@@ -148,31 +150,28 @@ public class TCPServer {
 
 	}
 
-	@SuppressWarnings("finally")
-	private File saveFile(Socket clientSock) throws IOException {
-		FileInputStream fis = null;
-		BufferedInputStream bis = null;
-		OutputStream os = null;
+	@SuppressWarnings({ "finally", "resource" })
+	public File saveFile(Socket serverSocket) throws Exception{
+		FileOutputStream fos = null;
+		BufferedOutputStream bos = null;
+		InputStream is = null;
 		File newfile = null;
-		String pathName = zip.CurrentDir + File.separator + "newfile.zip";
+		String pathName = zip.CurrentDir + File.separator + "recivedFiles" + File.separator + "newFile.zip";
 		try {
 			newfile = new File(pathName);
-			byte b[] = new byte[(int) newfile.length()];
-			fis = new FileInputStream(newfile);
-			bis = new BufferedInputStream(fis);
-			bis.read(b, 0, b.length);
-			os = clientSock.getOutputStream();
-			os.write(b, 0, b.length);
-			os.flush();
-		}finally {
-			if (bis != null)
-				bis.close();
-			if (fis != null)
-				fis.close();
-			if (os != null)
-				os.close();
-			if (clientSock != null)
-				clientSock.close();
+			is = serverSocket.getInputStream();
+			fos = new FileOutputStream(newfile);
+			bos = new BufferedOutputStream(fos);
+			int c = 0;
+			byte[] b = new byte[2048];
+			while ((c = is.read(b)) > 0) {
+				bos.write(b, 0, c);
+			}
+		} finally {
+			if (is != null)
+				is.close();
+			if (bos != null)
+				bos.close();
 			return newfile;
 		}
 	}

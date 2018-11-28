@@ -1,5 +1,6 @@
 package TCP;
 
+import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 
 /*
@@ -31,6 +32,7 @@ import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -91,26 +93,28 @@ public class TCPClient {
 		}
 	}
 
-	public void sendFile(File file) throws IOException {
-		FileOutputStream fos = null;
-		BufferedOutputStream bos = null;
-		InputStream is = null;
+	public void sendFile(File file) throws IOException{
+		FileInputStream fis = null;
+		BufferedInputStream bis = null;
+		OutputStream os = null;
 		try {
-			is = socket.getInputStream();
-			fos = new FileOutputStream(file);
-			bos = new BufferedOutputStream(fos);
-			int c = 0;
-			byte[] b = new byte[2048];
-			while ((c = is.read(b)) > 0) {
-				bos.write(b, 0, c);
-			}
-		} finally {
-			if (is != null)
-				is.close();
-			if (bos != null)
-				bos.close();
+			byte b[] = new byte[(int) file.length()];
+			fis = new FileInputStream(file);
+			bis = new BufferedInputStream(fis);
+			bis.read(b, 0, b.length);
+			os = socket.getOutputStream();
+			os.write(b, 0, b.length);
+			os.flush();
+		}finally {
+			if (bis != null)
+				bis.close();
+			if (fis != null)
+				fis.close();
+			if (os != null)
+				os.close();
 		}
 	}
+	
 	
 	public void receiveMessage() {
 		rt = new RecvThread("Receive THread", client);
