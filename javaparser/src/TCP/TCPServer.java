@@ -161,7 +161,7 @@ public class TCPServer {
 			fos = new FileOutputStream(newfile);
 			bos = new BufferedOutputStream(fos);
 			int c = 0;
-			byte[] b = new byte[2048];
+			byte[] b = new byte[1024];
 			while ((c = is.read(b)) > 0) {
 				bos.write(b, 0, c);
 			}

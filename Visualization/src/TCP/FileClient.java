@@ -1,7 +1,6 @@
 package TCP;
 
 import java.io.BufferedOutputStream;
-import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -22,18 +21,20 @@ public class FileClient {
 	public FileClient(String host, int port) {
 		try {
 			s = new Socket(host, port);
+			sendFile(s);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}
 
-	public void sendFile(File file) throws IOException {
+	public void sendFile(Socket sr) throws IOException {
 		FileOutputStream fos = null;
 		BufferedOutputStream bos = null;
 		InputStream is = null;
+		
 		try {
-			is = s.getInputStream();
-			fos = new FileOutputStream(file);
+			is = sr.getInputStream();
+			fos = new FileOutputStream("/Users/jacobolsson/Downloads/MiniProject-DistributedSystem-1dc09d7c86538716f6f1cf5c129f2d5c910693c5/Visualization/sup.zip");
 			bos = new BufferedOutputStream(fos);
 			int c = 0;
 			byte[] b = new byte[2048];
@@ -49,7 +50,7 @@ public class FileClient {
 	}
 
 	public static void main(String[] args) {
-		FileClient fc = new FileClient("localhost", 1988);
+		FileClient fc = new FileClient("172.20.10.14", 1988);
 	}
 
 }

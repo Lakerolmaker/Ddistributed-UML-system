@@ -38,6 +38,24 @@ public class NODE_parser {
 		int port = client.get("port").getAsInt();
 		tcp.client.connect(ip, port);
 		
+		String CurrentDir = System.getProperty("user.dir");
+		String inputFolder_Path = CurrentDir + "/InputFiles";
+		File newfile = new File(inputFolder_Path);
+		
+		UMLPackage project = Parse(newfile);
+
+		Gson jsonParser = new Gson();
+		String project_json = jsonParser.toJson(project);
+
+		TCP_data data = new TCP_data();
+		data.setData(project_json);
+		data.setMetaData("Parsed data");
+
+		String data_json = jsonParser.toJson(data);
+
+		tcp.client.send(data_json + "\n");
+		System.out.println("Parsed data sent");
+		
 
 		tcp.server.initializeServer();
 		tcp.server.startFileServer(new RunnableArg<File>() {
