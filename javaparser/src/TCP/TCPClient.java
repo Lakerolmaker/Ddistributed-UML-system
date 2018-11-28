@@ -58,16 +58,11 @@ import com.google.gson.JsonParser;
 
 public class TCPClient {
 
-	private static Socket socket;
-	private static OutputStream os;
-	private static OutputStreamWriter osw;
-	private static BufferedWriter bw;
-	private PostClass post = new PostClass();
-
 	public SocketChannel client = null;
 	public InetSocketAddress isa = null;
-	public RecvThread rt = null;
-
+	private PostClass post = new PostClass();
+	ZIP zip = new ZIP();
+	
 	public void connect(String ipadress, int port) {
 		int result = 0;
 		try {
@@ -102,7 +97,7 @@ public class TCPClient {
 			fis = new FileInputStream(file);
 			bis = new BufferedInputStream(fis);
 			bis.read(b, 0, b.length);
-			os = socket.getOutputStream();
+			os = getSocket().getOutputStream();
 			os.write(b, 0, b.length);
 			os.flush();
 		}finally {
@@ -115,53 +110,18 @@ public class TCPClient {
 		}
 	}
 	
+	public Socket getSocket() {
+		return this.client.socket();
+	}
 	
-	public void receiveMessage() {
-		rt = new RecvThread("Receive THread", client);
-		rt.start();
+	public String getIP() throws IOException {
+		return this.client.getLocalAddress().toString();
 	}
-
-	public void interruptThread() {
-		rt.val = false;
+	
+	public int getport() {
+		return this.getSocket().getPort();
 	}
-
-	public class RecvThread extends Thread {
-
-		public SocketChannel sc = null;
-		public boolean val = true;
-
-		public RecvThread(String str, SocketChannel client) {
-			super(str);
-			sc = client;
-		}
-
-		public void run() {
-
-			System.out.println("Inside receivemsg");
-			int nBytes = 0;
-			ByteBuffer buf = ByteBuffer.allocate(2048);
-			try {
-				while (val) {
-					while ((nBytes = client.read(buf)) > 0) {
-						buf.flip();
-						Charset charset = Charset.forName("us-ascii");
-						CharsetDecoder decoder = charset.newDecoder();
-						CharBuffer charBuffer = decoder.decode(buf);
-						String result = charBuffer.toString();
-						System.out.println(result);
-						buf.flip();
-
-					}
-				}
-
-			} catch (IOException e) {
-				e.printStackTrace();
-
-			}
-
-		}
-	}
-
+	
 	public JsonArray getFromNetwork(String nodeName) throws Exception {
 
 		post.addPostParamter("action", "lookup");

@@ -53,10 +53,8 @@ import javafx.beans.value.ObservableValue;
 
 public class TCPServer {
 
-	public Selector sel = null;
+
 	public ServerSocket server = null;
-	private SocketChannel socket = null;
-	String result = null;
 	public PostClass post = new PostClass();
 	ZIP zip = new ZIP();
 
@@ -65,7 +63,7 @@ public class TCPServer {
 		InetAddress adress = InetAddress.getLocalHost();
 		server = new ServerSocket(port, 10, adress);
 	}
-
+	
 	public String getIp() {
 		return server.getInetAddress().getHostAddress();
 	}
@@ -213,10 +211,6 @@ public class TCPServer {
 		post.URL = "http://api.lakerolmaker.com/network_lookup.php";
 
 		post.post();
-	}
-
-	public void getFromNetwork() {
-
 	}
 
 }
