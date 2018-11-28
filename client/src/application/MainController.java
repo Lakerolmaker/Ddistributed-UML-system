@@ -55,13 +55,8 @@ public class MainController implements Initializable{
 	}
 	
 	public void sendFile(String filePath) throws Exception{
-		
-		ZIP zip = new ZIP();
-		
-		zip.compress(filePath);
-		
-		String newPath = filePath.concat(".zip");
-		File newFile = new File(newPath);
+
+		File newFile = new File(filePath);
 		
 		JsonArray network = tcp.client.getFromNetwork("parser");
 		JsonObject client = network.get(0).getAsJsonObject();

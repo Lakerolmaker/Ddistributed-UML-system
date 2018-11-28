@@ -40,6 +40,8 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Scanner;
 import java.util.Set;
+import java.util.zip.ZipFile;
+
 import javafx.beans.InvalidationListener;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
@@ -53,7 +55,6 @@ import javafx.beans.value.ObservableValue;
 
 public class TCPServer {
 
-
 	public ServerSocket server = null;
 	public PostClass post = new PostClass();
 	ZIP zip = new ZIP();
@@ -63,7 +64,7 @@ public class TCPServer {
 		InetAddress adress = InetAddress.getLocalHost();
 		server = new ServerSocket(port, 10, adress);
 	}
-	
+
 	public String getIp() {
 		return server.getInetAddress().getHostAddress();
 	}
@@ -118,45 +119,47 @@ public class TCPServer {
 			public void run() {
 
 				while (true) {
-					
-						Socket clientSock;
-						try {
-							clientSock = server.accept();
+					Socket socket;
+					try {
+						socket = server.accept();
+						File file = saveFile(socket);
 						
-						File newfile = saveFile(clientSock);
-					
-						zip.uncompress(newfile);
+						String newpath = file.getParentFile().getAbsolutePath() + File.separator + "InputFiles";
+						File newFile = new File(newpath);
+						newFile.mkdir();
 						
-						invocation.addArgs(newfile);
+						zip.extractFolder(file, newFile);
+						
 						invocation.run();
 						
-						} catch (IOException e) {
-							System.err.println("Failed to fetch file : " + e.getMessage());
-						}catch(Exception en) {
-								System.err.println("Failed to uncompress file : " + en.getMessage());
-						}
-					
+					} catch (Exception e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+
 				}
 
 			}
 
 		};
 
-		new Thread(serverCode).start();;
+		new Thread(serverCode).start();
+		;
 
 		System.out.println("TCP file-server running on - " + this.getIp() + ":" + this.getPort());
 
 	}
 
-	@SuppressWarnings({ "finally", "resource" })
-	public File saveFile(Socket socket) throws Exception{
+	public File saveFile(Socket socket) throws Exception {
+		String CurrentDir = System.getProperty("user.dir");
+		String newFilePath = CurrentDir + "/newfile.zip";
+		File file = new File(newFilePath);
+
 		FileOutputStream fos = null;
 		BufferedOutputStream bos = null;
 		InputStream is = null;
-		File file = new File("/Users/jacobolsson/Downloads/MiniProject-DistributedSystem-1dc09d7c86538716f6f1cf5c129f2d5c910693c5/Visualization/sup.zip");
-		
 		try {
-			is =  socket.getInputStream();
+			is = socket.getInputStream();
 			fos = new FileOutputStream(file);
 			bos = new BufferedOutputStream(fos);
 			int c = 0;
@@ -171,6 +174,7 @@ public class TCPServer {
 				bos.close();
 		}
 		return file;
+
 	}
 
 	private static int findFreePort() {

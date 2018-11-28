@@ -40,6 +40,8 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Scanner;
 import java.util.Set;
+import java.util.zip.ZipFile;
+
 import javafx.beans.InvalidationListener;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
@@ -120,7 +122,16 @@ public class TCPServer {
 					Socket socket;
 					try {
 						socket = server.accept();
-						saveFile(socket);
+						File file = saveFile(socket);
+						
+						String newpath = file.getParentFile().getAbsolutePath() + File.separator + "InputFiles";
+						File newFile = new File(newpath);
+						newFile.mkdir();
+						
+						zip.extractFolder(file, newFile);
+						
+						invocation.run();
+						
 					} catch (Exception e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
@@ -139,7 +150,7 @@ public class TCPServer {
 
 	}
 
-	public void saveFile(Socket socket) throws Exception {
+	public File saveFile(Socket socket) throws Exception {
 		String CurrentDir = System.getProperty("user.dir");
 		String newFilePath = CurrentDir + "/newfile.zip";
 		File file = new File(newFilePath);
@@ -162,6 +173,7 @@ public class TCPServer {
 			if (bos != null)
 				bos.close();
 		}
+		return file;
 
 	}
 

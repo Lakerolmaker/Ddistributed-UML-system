@@ -30,30 +30,24 @@ public class NODE_parser {
 	public static TCP tcp = new TCP();
 
 	public static void main(String[] args) throws Exception {
-/*
 		JsonArray network = tcp.client.getFromNetwork("visualizer");
 		JsonObject client = network.get(0).getAsJsonObject();
 
 		String ip = client.get("ip").getAsString();
 		int port = client.get("port").getAsInt();
 		tcp.client.connect(ip, port);
-*/		
-		/*
-		String CurrentDir = System.getProperty("user.dir");
-		String inputFolder_Path = CurrentDir + "/InputFiles";
-		File newfile = new File(inputFolder_Path);
-		*/
 
-		
 		tcp.server.initializeServer();
 		tcp.server.startFileServer(new RunnableArg<File>() {
 
 			@Override
 			public void run() {
-				/*
+				
 				System.out.println("Recived data");
 
-				File newfile = this.getArg();
+				String CurrentDir = System.getProperty("user.dir");
+				String inputFolder_Path = CurrentDir + "/InputFiles";
+				File newfile = new File(inputFolder_Path);
 	
 				UMLPackage project = Parse(newfile);
 
@@ -68,16 +62,11 @@ public class NODE_parser {
 
 				tcp.client.send(data_json + "\n");
 				System.out.println("Parsed data sent");
-				*/
+				
 			}
 		});
 		tcp.server.addToNetwork("parser");
-		
-		String ip_adr = tcp.server.getIp();
-		int port_adr = tcp.server.getPort();
-		tcp.client.connect(ip_adr, port_adr);
-		tcp.client.sendFile(new File("/Users/jacobolsson/Downloads/data.zip"));
-		
+				
 	}
 
 	public static UMLPackage Parse(File file) {

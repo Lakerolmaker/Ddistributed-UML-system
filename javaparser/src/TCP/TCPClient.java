@@ -58,37 +58,37 @@ import com.google.gson.JsonParser;
 
 public class TCPClient {
 
-	public SocketChannel client = null;
-	public InetSocketAddress isa = null;
+	public Socket socket = null;
 	private PostClass post = new PostClass();
 	ZIP zip = new ZIP();
-	
-	public void connect(String ipadress, int port) {
-		int result = 0;
-		try {
-			client = SocketChannel.open();
-			isa = new InetSocketAddress(ipadress, port);
-			client.connect(isa);
-			client.configureBlocking(false);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
 
+	public void connect(String ipadress, int port) throws UnknownHostException, IOException {
+		socket = new Socket(ipadress, port);
 	}
 
 	public void send(String message) {
-		ByteBuffer bytebuf = ByteBuffer.allocate(1024);
-		int nBytes = 0;
+
+		OutputStreamWriter out;
 		try {
-			bytebuf = ByteBuffer.wrap(message.getBytes("UTF-8"));
-			nBytes = client.write(bytebuf);
-			System.out.println("Wrote " + nBytes + " bytes to the server");
-		} catch (Exception e) {
-			System.out.println("Could not send message");
+			//Send the message to the server
+            OutputStream os = socket.getOutputStream();
+            OutputStreamWriter osw = new OutputStreamWriter(os);
+            BufferedWriter bw = new BufferedWriter(osw);
+            osw.write(message);
+            osw.flush();
+			System.out.println("Wrote " + message.getBytes().length + " bytes to the server");
+		} catch (IOException e) {
 		}
 	}
 
-	public void sendFile(File file) throws IOException{
+	public void sendFile(File Unziped_file) throws IOException {
+		
+		String filePath = Unziped_file.getAbsolutePath();
+		zip.compress(filePath);
+		String newPath = filePath.concat(".zip");
+		
+		File file = new File(newPath);
+		
 		FileInputStream fis = null;
 		BufferedInputStream bis = null;
 		OutputStream os = null;
@@ -100,6 +100,7 @@ public class TCPClient {
 			os = getSocket().getOutputStream();
 			os.write(b, 0, b.length);
 			os.flush();
+			file.delete();
 		} finally {
 			if (bis != null)
 				bis.close();
@@ -107,21 +108,22 @@ public class TCPClient {
 				os.close();
 			if (getSocket() != null)
 				getSocket().close();
+			
 		}
 	}
-	
+
 	public Socket getSocket() {
-		return this.client.socket();
+		return this.socket;
 	}
-	
+
 	public String getIP() throws IOException {
-		return this.client.getLocalAddress().toString();
+		return getSocket().getInetAddress().toString();
 	}
-	
+
 	public int getport() {
 		return this.getSocket().getPort();
 	}
-	
+
 	public JsonArray getFromNetwork(String nodeName) throws Exception {
 
 		post.addPostParamter("action", "lookup");
