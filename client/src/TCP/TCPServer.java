@@ -149,16 +149,18 @@ public class TCPServer {
 	}
 
 	@SuppressWarnings({ "finally", "resource" })
-	public File saveFile(Socket serverSocket) throws Exception{
+	public File saveFile(Socket socket) throws Exception{
 		FileOutputStream fos = null;
 		BufferedOutputStream bos = null;
 		InputStream is = null;
-		File newfile = null;
-		String pathName = zip.CurrentDir + File.separator + "recivedFiles" + File.separator + "newFile.zip";
+		
+		String CurrentDir = System.getProperty("user.dir");
+		String newFilePath = CurrentDir + "/newfile.zip";
+		File file = new File(newFilePath);
+		
 		try {
-			newfile = new File(pathName);
-			is = serverSocket.getInputStream();
-			fos = new FileOutputStream(newfile);
+			is =  socket.getInputStream();
+			fos = new FileOutputStream(file);
 			bos = new BufferedOutputStream(fos);
 			int c = 0;
 			byte[] b = new byte[2048];
@@ -170,8 +172,8 @@ public class TCPServer {
 				is.close();
 			if (bos != null)
 				bos.close();
-			return newfile;
 		}
+		return file;
 	}
 
 	private static int findFreePort() {

@@ -1,6 +1,7 @@
 package TCP;
 
 import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
 import java.io.DataInputStream;
 
@@ -14,6 +15,7 @@ import java.io.DataInputStream;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -38,7 +40,6 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Scanner;
 import java.util.Set;
-
 import javafx.beans.InvalidationListener;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
@@ -52,18 +53,17 @@ import javafx.beans.value.ObservableValue;
 
 public class TCPServer {
 
-	public Selector sel = null;
+
 	public ServerSocket server = null;
-	private SocketChannel socket = null;
-	String result = null;
 	public PostClass post = new PostClass();
+	ZIP zip = new ZIP();
 
 	public void initializeServer() throws Exception {
 		int port = findFreePort();
 		InetAddress adress = InetAddress.getLocalHost();
 		server = new ServerSocket(port, 10, adress);
 	}
-
+	
 	public String getIp() {
 		return server.getInetAddress().getHostAddress();
 	}
@@ -107,7 +107,7 @@ public class TCPServer {
 
 		new Thread(serverCode).start();
 
-		System.out.println("TCP server running on -" + this.getIp() + ":" + this.getPort());
+		System.out.println("TCP server running on - " + this.getIp() + ":" + this.getPort());
 	}
 
 	public void startFileServer(RunnableArg<File> invocation) {
@@ -118,50 +118,59 @@ public class TCPServer {
 			public void run() {
 
 				while (true) {
-					try {
-						Socket clientSock = server.accept();
+					
+						Socket clientSock;
+						try {
+							clientSock = server.accept();
+						
 						File newfile = saveFile(clientSock);
+					
+						zip.uncompress(newfile);
+						
 						invocation.addArgs(newfile);
 						invocation.run();
-					} catch (IOException e) {
-						e.printStackTrace();
-					}
+						
+						} catch (IOException e) {
+							System.err.println("Failed to fetch file : " + e.getMessage());
+						}catch(Exception en) {
+								System.err.println("Failed to uncompress file : " + en.getMessage());
+						}
+					
 				}
 
 			}
 
 		};
 
-		serverCode.run();
+		new Thread(serverCode).start();;
 
-		System.out.println("TCP file-server running on -" + this.getIp() + ":" + this.getPort());
+		System.out.println("TCP file-server running on - " + this.getIp() + ":" + this.getPort());
 
 	}
 
-	@SuppressWarnings("finally")
-	private File saveFile(Socket clientSock) throws IOException {
-		FileInputStream fis = null;
-		BufferedInputStream bis = null;
-		OutputStream os = null;
-		File newfile = null;
+	@SuppressWarnings({ "finally", "resource" })
+	public File saveFile(Socket socket) throws Exception{
+		FileOutputStream fos = null;
+		BufferedOutputStream bos = null;
+		InputStream is = null;
+		File file = new File("/Users/jacobolsson/Downloads/MiniProject-DistributedSystem-1dc09d7c86538716f6f1cf5c129f2d5c910693c5/Visualization/sup.zip");
+		
 		try {
-			newfile = new File("newfile.zip");
-			byte b[] = new byte[(int) newfile.length()];
-			fis = new FileInputStream(newfile);
-			bis = new BufferedInputStream(fis);
-			bis.read(b, 0, b.length);
-			os = clientSock.getOutputStream();
-			os.write(b, 0, b.length);
-			os.flush();
+			is =  socket.getInputStream();
+			fos = new FileOutputStream(file);
+			bos = new BufferedOutputStream(fos);
+			int c = 0;
+			byte[] b = new byte[2048];
+			while ((c = is.read(b)) > 0) {
+				bos.write(b, 0, c);
+			}
 		} finally {
-			if (bis != null)
-				bis.close();
-			if (os != null)
-				os.close();
-			if (clientSock != null)
-				clientSock.close();
-			return newfile;
+			if (is != null)
+				is.close();
+			if (bos != null)
+				bos.close();
 		}
+		return file;
 	}
 
 	private static int findFreePort() {
@@ -201,10 +210,6 @@ public class TCPServer {
 		post.URL = "http://api.lakerolmaker.com/network_lookup.php";
 
 		post.post();
-	}
-
-	public void getFromNetwork() {
-
 	}
 
 }

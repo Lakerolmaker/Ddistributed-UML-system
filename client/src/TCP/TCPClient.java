@@ -100,13 +100,13 @@ public class TCPClient {
 			os = getSocket().getOutputStream();
 			os.write(b, 0, b.length);
 			os.flush();
-		}finally {
+		} finally {
 			if (bis != null)
 				bis.close();
-			if (fis != null)
-				fis.close();
 			if (os != null)
 				os.close();
+			if (getSocket() != null)
+				getSocket().close();
 		}
 	}
 	

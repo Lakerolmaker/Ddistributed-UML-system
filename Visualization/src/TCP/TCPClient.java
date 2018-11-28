@@ -1,5 +1,6 @@
 package TCP;
 
+import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 
 /*
@@ -31,6 +32,7 @@ import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -56,16 +58,11 @@ import com.google.gson.JsonParser;
 
 public class TCPClient {
 
-	private static Socket socket;
-	private static OutputStream os;
-	private static OutputStreamWriter osw;
-	private static BufferedWriter bw;
-	private PostClass post = new PostClass();
-
 	public SocketChannel client = null;
 	public InetSocketAddress isa = null;
-	public RecvThread rt = null;
-
+	private PostClass post = new PostClass();
+	ZIP zip = new ZIP();
+	
 	public void connect(String ipadress, int port) {
 		int result = 0;
 		try {
@@ -91,73 +88,40 @@ public class TCPClient {
 		}
 	}
 
-	public void sendFile(File file) throws IOException {
-		FileOutputStream fos = null;
-		BufferedOutputStream bos = null;
-		InputStream is = null;
+	public void sendFile(File file) throws IOException{
+		FileInputStream fis = null;
+		BufferedInputStream bis = null;
+		OutputStream os = null;
 		try {
-			is = socket.getInputStream();
-			fos = new FileOutputStream(file);
-			bos = new BufferedOutputStream(fos);
-			int c = 0;
-			byte[] b = new byte[2048];
-			while ((c = is.read(b)) > 0) {
-				bos.write(b, 0, c);
-			}
+			byte b[] = new byte[(int) file.length()];
+			fis = new FileInputStream(file);
+			bis = new BufferedInputStream(fis);
+			bis.read(b, 0, b.length);
+			os = getSocket().getOutputStream();
+			os.write(b, 0, b.length);
+			os.flush();
 		} finally {
-			if (is != null)
-				is.close();
-			if (bos != null)
-				bos.close();
+			if (bis != null)
+				bis.close();
+			if (os != null)
+				os.close();
+			if (getSocket() != null)
+				getSocket().close();
 		}
 	}
 	
-	public void receiveMessage() {
-		rt = new RecvThread("Receive THread", client);
-		rt.start();
+	public Socket getSocket() {
+		return this.client.socket();
 	}
-
-	public void interruptThread() {
-		rt.val = false;
+	
+	public String getIP() throws IOException {
+		return this.client.getLocalAddress().toString();
 	}
-
-	public class RecvThread extends Thread {
-
-		public SocketChannel sc = null;
-		public boolean val = true;
-
-		public RecvThread(String str, SocketChannel client) {
-			super(str);
-			sc = client;
-		}
-
-		public void run() {
-
-			System.out.println("Inside receivemsg");
-			int nBytes = 0;
-			ByteBuffer buf = ByteBuffer.allocate(2048);
-			try {
-				while (val) {
-					while ((nBytes = client.read(buf)) > 0) {
-						buf.flip();
-						Charset charset = Charset.forName("us-ascii");
-						CharsetDecoder decoder = charset.newDecoder();
-						CharBuffer charBuffer = decoder.decode(buf);
-						String result = charBuffer.toString();
-						System.out.println(result);
-						buf.flip();
-
-					}
-				}
-
-			} catch (IOException e) {
-				e.printStackTrace();
-
-			}
-
-		}
+	
+	public int getport() {
+		return this.getSocket().getPort();
 	}
-
+	
 	public JsonArray getFromNetwork(String nodeName) throws Exception {
 
 		post.addPostParamter("action", "lookup");

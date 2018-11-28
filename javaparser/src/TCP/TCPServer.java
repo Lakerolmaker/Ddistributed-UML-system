@@ -53,7 +53,6 @@ import javafx.beans.value.ObservableValue;
 
 public class TCPServer {
 
-
 	public ServerSocket server = null;
 	public PostClass post = new PostClass();
 	ZIP zip = new ZIP();
@@ -63,7 +62,7 @@ public class TCPServer {
 		InetAddress adress = InetAddress.getLocalHost();
 		server = new ServerSocket(port, 10, adress);
 	}
-	
+
 	public String getIp() {
 		return server.getInetAddress().getHostAddress();
 	}
@@ -118,50 +117,42 @@ public class TCPServer {
 			public void run() {
 
 				while (true) {
-					
-						Socket clientSock;
-						try {
-							clientSock = server.accept();
-						
-						File newfile = saveFile(clientSock);
-					
-						zip.uncompress(newfile);
-						
-						invocation.addArgs(newfile);
-						invocation.run();
-						
-						} catch (IOException e) {
-							System.err.println("Failed to fetch file : " + e.getMessage());
-						}catch(Exception en) {
-								System.err.println("Failed to uncompress file : " + en.getMessage());
-						}
-					
+					Socket socket;
+					try {
+						socket = server.accept();
+						saveFile(socket);
+					} catch (Exception e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+
 				}
 
 			}
 
 		};
 
-		new Thread(serverCode).start();;
+		new Thread(serverCode).start();
+		;
 
 		System.out.println("TCP file-server running on - " + this.getIp() + ":" + this.getPort());
 
 	}
 
-	@SuppressWarnings({ "finally", "resource" })
-	public File saveFile(Socket serverSocket) throws Exception{
+	public void saveFile(Socket socket) throws Exception {
+		String CurrentDir = System.getProperty("user.dir");
+		String newFilePath = CurrentDir + "/newfile.zip";
+		File file = new File(newFilePath);
+
 		FileOutputStream fos = null;
 		BufferedOutputStream bos = null;
 		InputStream is = null;
-		File newfile = null;
-		String pathName = zip.CurrentDir + File.separator + "recivedFiles" + File.separator + "newFile.zip";
 		try {
-			newfile = new File(pathName);
-			is = serverSocket.getInputStream();
-			fos = new FileOutputStream(newfile);
+			is = socket.getInputStream();
+			fos = new FileOutputStream(file);
 			bos = new BufferedOutputStream(fos);
 			int c = 0;
-			byte[] b = new byte[1024];
+			byte[] b = new byte[2048];
 			while ((c = is.read(b)) > 0) {
 				bos.write(b, 0, c);
 			}
@@ -170,8 +161,8 @@ public class TCPServer {
 				is.close();
 			if (bos != null)
 				bos.close();
-			return newfile;
 		}
+
 	}
 
 	private static int findFreePort() {
