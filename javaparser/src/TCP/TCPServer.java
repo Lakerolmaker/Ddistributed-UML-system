@@ -124,12 +124,7 @@ public class TCPServer {
 						socket = server.accept();
 						File file = saveFile(socket);
 						
-						String newpath = file.getParentFile().getAbsolutePath() + File.separator + "InputFiles";
-						File newFile = new File(newpath);
-						newFile.mkdir();
-						
-						zip.extractFolder(file, newFile);
-						
+						invocation.setArg(file);
 						invocation.run();
 						
 					} catch (Exception e) {

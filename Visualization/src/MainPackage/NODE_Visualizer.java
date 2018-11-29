@@ -69,12 +69,19 @@ public class NODE_Visualizer extends Application {
 		creatElements();
 
 		double Canvas_height = getCanvasHeight();
+		double Canvas_width = getCanvasWidth();
+		
+		if(Canvas_height > Canvas_width) {
+			Canvas_width = Canvas_height;
+		}else {
+			Canvas_height = Canvas_width;
+		}
+		
 		Canvas canvas = new Canvas();
 		canvas.setHeight(Canvas_height);
-		canvas.setWidth(Canvas_height);
+		canvas.setWidth(Canvas_width);
 
 		GraphicsContext cx = canvas.getGraphicsContext2D();
-
 		drawElemements(cx);
 
 		saveToImage(canvas);

@@ -24,12 +24,14 @@ import FileClasses.Variable;
 import TCP.RunnableArg;
 import TCP.TCP;
 import TCP.TCP_data;
+import TCP.ZIP;
 
 public class NODE_parser {
 
 	public static TCP tcp = new TCP();
 
 	public static void main(String[] args) throws Exception {
+
 		JsonArray network = tcp.client.getFromNetwork("visualizer");
 		JsonObject client = network.get(0).getAsJsonObject();
 
@@ -42,14 +44,15 @@ public class NODE_parser {
 
 			@Override
 			public void run() {
-				
+
 				System.out.println("Recived data");
 
-				String CurrentDir = System.getProperty("user.dir");
-				String inputFolder_Path = CurrentDir + "/InputFiles";
-				File newfile = new File(inputFolder_Path);
-	
-				UMLPackage project = Parse(newfile);
+				ZIP zip = new ZIP();
+				File recivedFile = this.getArg();
+
+				File unzipedFile = zip.unzip(recivedFile);
+
+				UMLPackage project = Parse(unzipedFile);
 
 				Gson jsonParser = new Gson();
 				String project_json = jsonParser.toJson(project);
@@ -63,10 +66,15 @@ public class NODE_parser {
 				tcp.client.send(data_json + "\n");
 				System.out.println("Parsed data sent");
 				
+				
+				//: Deleted the files after the parsed data is sent to the visualizer.
+				unzipedFile.delete();
+				recivedFile.delete();
+
 			}
 		});
 		tcp.server.addToNetwork("parser");
-				
+
 	}
 
 	public static UMLPackage Parse(File file) {
