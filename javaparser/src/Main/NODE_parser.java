@@ -68,9 +68,9 @@ public class NODE_parser {
 				
 				
 				//: Deleted the files after the parsed data is sent to the visualizer.
-				unzipedFile.delete();
-				recivedFile.delete();
-
+				zip.deleteFile(unzipedFile);
+				zip.deleteFile(recivedFile);
+			
 			}
 		});
 		tcp.server.addToNetwork("parser");
