@@ -48,87 +48,67 @@ public class ZIP {
 		}
 	}
 
-	public void uncompress(File zippedFile) throws Exception {
+	public File unzip(File zippedFile) {
 
-		String path = zippedFile.getParentFile().getAbsolutePath() + File.separator + zippedFile.getName();
-		File destDir = new File(path);
-		destDir.mkdir();
+		String dirname = withoutExtension(zippedFile.getName());
+		File dir = new File(dirname);
 
+		// create output directory if it doesn't exist
+		if (!dir.exists())
+			dir.mkdirs();
+		FileInputStream fis;
+		// buffer for read and write data to file
 		byte[] buffer = new byte[1024];
-		ZipInputStream zis = new ZipInputStream(new FileInputStream(zippedFile.getAbsolutePath()));
-		ZipEntry zipEntry = zis.getNextEntry();
-		while (zipEntry != null) {
-			File newFile = newFile(destDir, zipEntry);
-			FileOutputStream fos = new FileOutputStream(newFile);
-			int len;
-			while ((len = zis.read(buffer)) > 0) {
-				fos.write(buffer, 0, len);
-			}
-			fos.close();
-			zipEntry = zis.getNextEntry();
-		}
-		zis.closeEntry();
-		zis.close();
-	}
-
-	private File newFile(File destinationDir, ZipEntry zipEntry) throws IOException {
-		File destFile = new File(destinationDir, zipEntry.getName());
-
-		String destDirPath = destinationDir.getCanonicalPath();
-		String destFilePath = destFile.getCanonicalPath();
-
-		if (!destFilePath.startsWith(destDirPath + File.separator)) {
-			throw new IOException("Entry is outside of the target dir: " + zipEntry.getName());
-		}
-
-		return destFile;
-	}
-
-	public void extractFolder(File file, File extractFolder) {
 		try {
-			int BUFFER = 2048;
-
-			ZipFile zip = new ZipFile(file);
-			String newPath = extractFolder.getAbsolutePath();
-
-			new File(newPath).mkdir();
-			Enumeration zipFileEntries = zip.entries();
-
-			// Process each entry
-			while (zipFileEntries.hasMoreElements()) {
-				// grab a zip file entry
-				ZipEntry entry = (ZipEntry) zipFileEntries.nextElement();
-				String currentEntry = entry.getName();
-
-				File destFile = new File(newPath, currentEntry);
-				// destFile = new File(newPath, destFile.getName());
-				File destinationParent = destFile.getParentFile();
-
-				// create the parent directory structure if needed
-				destinationParent.mkdirs();
-
-				if (!entry.isDirectory()) {
-					BufferedInputStream is = new BufferedInputStream(zip.getInputStream(entry));
-					int currentByte;
-					// establish buffer for writing file
-					byte data[] = new byte[BUFFER];
-
-					// write the current file to disk
-					FileOutputStream fos = new FileOutputStream(destFile);
-					BufferedOutputStream dest = new BufferedOutputStream(fos, BUFFER);
-
-					// read and write until last byte is encountered
-					while ((currentByte = is.read(data, 0, BUFFER)) != -1) {
-						dest.write(data, 0, currentByte);
-					}
-					dest.flush();
-					dest.close();
-					is.close();
+			fis = new FileInputStream(zippedFile);
+			ZipInputStream zis = new ZipInputStream(fis);
+			ZipEntry ze = zis.getNextEntry();
+			while (ze != null) {
+				String fileName = ze.getName();
+				File newFile = new File(dir.getAbsolutePath() + File.separator + fileName);
+				// create directories for sub directories in zip
+				new File(newFile.getParent()).mkdirs();
+				FileOutputStream fos = new FileOutputStream(newFile);
+				int len;
+				while ((len = zis.read(buffer)) > 0) {
+					fos.write(buffer, 0, len);
 				}
-
+				fos.close();
+				// close this ZipEntry
+				zis.closeEntry();
+				ze = zis.getNextEntry();
 			}
-		} catch (Exception e) {
-			System.err.println("ERROR: " + e.getMessage());
+			// close last ZipEntry
+			zis.closeEntry();
+			zis.close();
+			fis.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return dir;
+	}
+
+	public String withoutExtension(String filename) {
+		return filename.substring(0, filename.lastIndexOf('.'));
+	}
+
+	public void deleteFile(File file) {
+
+		if (file.isFile()) {
+			boolean couldDelete = file.delete();
+			if (!couldDelete) {
+				System.out.println("Could not delete file " + file.getName());
+			}
+		} else if (file.isDirectory()) {
+
+			File[] files = file.listFiles();
+			for (File seletedFile : files) {
+				deleteFile(seletedFile);
+			}
+			boolean couldDelete = file.delete();
+			if (!couldDelete) {
+				System.out.println("Could not delete folder " + file.getName());
+			}
 		}
 
 	}
