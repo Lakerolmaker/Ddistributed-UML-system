@@ -1,6 +1,5 @@
 package application;
 	
-import fileClasses.ZIP;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.stage.Stage;
@@ -15,6 +14,7 @@ public class NODE_client extends Application {
 	public static void main(String[] args) {
 		launch(args);
 	}
+		
 	
 	@Override
 	public void start(Stage primaryStage) {
@@ -23,7 +23,7 @@ public class NODE_client extends Application {
 			FXMLLoader loader = new FXMLLoader(NODE_client.class.getResource("Main.fxml"));
 			AnchorPane root = loader.load();
 			Scene scene = new Scene(root);
-			primaryStage.setTitle("Client");
+			primaryStage.setTitle("Java to UML");
 			primaryStage.setScene(scene);
 			primaryStage.show();
 		} catch(Exception e) {

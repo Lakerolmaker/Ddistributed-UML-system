@@ -50,7 +50,7 @@ public class NODE_parser {
 				ZIP zip = new ZIP();
 				File recivedFile = this.getArg();
 
-				File unzipedFile = zip.unzip(recivedFile);
+				File unzipedFile = zip.uncompress(recivedFile);
 
 				UMLPackage project = Parse(unzipedFile);
 

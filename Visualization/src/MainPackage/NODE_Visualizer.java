@@ -12,6 +12,7 @@ import FileClasses.UMLPackage;
 import TCP.RunnableArg;
 import TCP.TCP;
 import TCP.TCP_data;
+import TCP.ZIP;
 import javafx.application.Application;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.stage.Stage;
@@ -23,7 +24,8 @@ public class NODE_Visualizer extends Application {
 	public static ArrayList<UMLClass> umlClasses = new ArrayList<UMLClass>();
 	public static DrawableCLass[][] classes;
 	public static TCP tcp = new TCP();
-
+	ZIP zip = new ZIP();
+	
 	public static String[] systemArgs;
 	
 	public static void main(String[] args) throws Exception {
@@ -58,7 +60,6 @@ public class NODE_Visualizer extends Application {
 		
 	}
 
-	
 	public static void Lanchprogram() {
 		launch(systemArgs);
 	}
@@ -84,10 +85,8 @@ public class NODE_Visualizer extends Application {
 		GraphicsContext cx = canvas.getGraphicsContext2D();
 		drawElemements(cx);
 
-		saveToImage(canvas);
-
-		System.exit(0);
-
+		File uml_picture = saveToImage(canvas);
+		
 		try {
 
 			JsonArray clients = tcp.client.getFromNetwork("client");
@@ -100,7 +99,7 @@ public class NODE_Visualizer extends Application {
 				int port = client.get("port").getAsInt();
 
 				tcp.client.connect(ip, port);
-				tcp.client.send("file");
+				tcp.client.sendFile(uml_picture);
 
 			}
 		} catch (Exception e) {
@@ -238,7 +237,7 @@ public class NODE_Visualizer extends Application {
 
 	}
 
-	public void saveToImage(Canvas canvas) {
+	public File saveToImage(Canvas canvas) {
 
 		int width = (int) canvas.getHeight();
 		int height = (int) canvas.getWidth();
@@ -253,7 +252,7 @@ public class NODE_Visualizer extends Application {
 			ImageIO.write(SwingFXUtils.fromFXImage(wim, null), "png", file);
 		} catch (Exception s) {
 		}
-
+		return file;
 	}
 
 }

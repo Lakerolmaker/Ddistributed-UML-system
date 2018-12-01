@@ -48,7 +48,7 @@ public class ZIP {
 		}
 	}
 
-	public File unzip(File zippedFile) {
+	public File uncompress(File zippedFile) {
 
 		String dirname = withoutExtension(zippedFile.getName());
 		File dir = new File(dirname);

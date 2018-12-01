@@ -1,16 +1,21 @@
 package application;
 
 
+import java.awt.Desktop;
 import java.io.File;
+import java.io.IOException;
 import java.net.URL;
 import java.util.ResourceBundle;
 
+import javax.imageio.ImageIO;
+
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import com.sun.prism.Image;
 
 import TCP.RunnableArg;
 import TCP.TCP;
-import fileClasses.ZIP;
+import TCP.ZIP;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
@@ -29,6 +34,7 @@ import ui.RingProgressIndicator;
 public class MainController implements Initializable{
     
 	TCP tcp = new TCP();
+	ZIP zip = new ZIP();
 	
 	@FXML
 	public Button selectFile;
@@ -58,13 +64,6 @@ public class MainController implements Initializable{
 
 		File newFile = new File(filePath);
 		
-		JsonArray network = tcp.client.getFromNetwork("parser");
-		JsonObject client = network.get(0).getAsJsonObject();
-
-		String ip = client.get("ip").getAsString();
-		int port = client.get("port").getAsInt();
-
-		tcp.client.connect(ip, port);
 		tcp.client.sendFile(newFile);
 		
 	}
@@ -81,7 +80,49 @@ public class MainController implements Initializable{
 		
 		ProgressThread pt = new ProgressThread(ringProgressIndicator);
 		pt.start();
+		
+		try {
+			initTCP();
+		} catch (Exception e) {
+			System.err.println("Could not initialize the tcp : " + e.getMessage());
+		}
 
+	}
+	
+	public void initTCP() throws Exception {
+
+		JsonArray network = tcp.client.getFromNetwork("parser");
+		JsonObject client = network.get(0).getAsJsonObject();
+
+		String ip = client.get("ip").getAsString();
+		int port = client.get("port").getAsInt();
+
+		tcp.client.connect(ip, port);
+		
+		tcp.server.initializeServer();
+		tcp.server.startFileServer(new RunnableArg<File>() {
+
+			@Override
+			public void run() {
+				// TODO Auto-generated method stub
+				File file = this.getArg();
+				
+				File unzipped_file = zip.uncompress(file);
+				
+				
+				Desktop dt = Desktop.getDesktop();
+			    try {
+					dt.open(unzipped_file);
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+				
+			}
+			
+		});
+		tcp.server.addToNetwork("client");
+		
 	}
 
 
