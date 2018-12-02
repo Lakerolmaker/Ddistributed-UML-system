@@ -27,7 +27,7 @@ public class oldDrawable {
 
 	private StandardValues standard = new StandardValues();
 
-	public DrawableCLass(double x, double y, UMLClass umlclass) {
+	public oldDrawable(double x, double y, UMLClass umlclass) {
 		super();
 		this.UMLclass = umlclass;
 		

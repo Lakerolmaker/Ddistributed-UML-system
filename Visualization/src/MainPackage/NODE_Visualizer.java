@@ -1,4 +1,4 @@
-	package MainPackage;
+package MainPackage;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -23,12 +23,13 @@ public class NODE_Visualizer extends Application {
 	public static ArrayList<UMLClass> umlClasses = new ArrayList<UMLClass>();
 	public static DrawableCLass[][] classes;
 	public static TCP tcp = new TCP();
+	StandardValues standard = new StandardValues();
 
 	public static String[] systemArgs;
-	
+
 	public static void main(String[] args) throws Exception {
 		systemArgs = args;
-		
+
 		tcp.server.initializeServer();
 		tcp.server.start(new RunnableArg<String>() {
 
@@ -45,7 +46,7 @@ public class NODE_Visualizer extends Application {
 					UMLPackage project = javaParser.fromJson(data.data, UMLPackage.class);
 
 					umlClasses = getClasses(project);
-					
+
 					Lanchprogram();
 
 				}
@@ -55,14 +56,13 @@ public class NODE_Visualizer extends Application {
 
 		tcp.server.post.addPostParamter("master_node", "true");
 		tcp.server.addToNetwork("visualizer");
-		
+
 	}
 
-	
 	public static void Lanchprogram() {
 		launch(systemArgs);
 	}
-	
+
 	@Override
 	public void start(Stage primaryStage) throws Exception {
 
@@ -131,7 +131,7 @@ public class NODE_Visualizer extends Application {
 
 			}
 		}
-		return maxWidth + StandardValues.canvasPadding_Y;
+		return maxWidth + standard.canvasPadding_Y;
 	}
 
 	public double getCanvasHeight() {
@@ -148,7 +148,7 @@ public class NODE_Visualizer extends Application {
 
 			}
 		}
-		return maxHeight + StandardValues.canvasPadding_Y;
+		return maxHeight + standard.canvasPadding_Y;
 	}
 
 	public void drawElemements(GraphicsContext cx) {
@@ -173,7 +173,7 @@ public class NODE_Visualizer extends Application {
 
 		for (int i = 0; i < umlClasses.size(); i++) {
 
-			classes[Y][X] = createClass(Y, X , umlClasses.get(i));
+			classes[Y][X] = createClass(Y, X, umlClasses.get(i));
 
 			// : checks for new row.
 			if (X == sqr) {
@@ -193,9 +193,6 @@ public class NODE_Visualizer extends Application {
 		double ClassX = getpreviousX(y, x);
 		double ClassY = getpreviousY(y, x);
 
-		ClassX += StandardValues.padding;
-		ClassY += StandardValues.padding;
-
 		DrawableCLass newClass = new DrawableCLass(ClassX, ClassY, umlClass);
 
 		return newClass;
@@ -211,23 +208,37 @@ public class NODE_Visualizer extends Application {
 			width = classes[y - 1][x].getbottomY();
 
 		} catch (Exception e) {
+			
 		}
 
-		return width;
+		return width + standard.padding;
 	}
 
 	public double getpreviousX(int y, int x) {
 
-		double height = 0;
-
+		double height_above = 0;
+		double height_left = 0;
+ 
 		try {
-
-			height = classes[y][x - 1].getrightX();
-
+			height_above = classes[y - 1][x].getX();
 		} catch (Exception e) {
+			//: Adds a standard padding to the classes that are a the edge
+			height_above = standard.padding;
 		}
 
-		return height;
+		try {
+			height_left = classes[y][x - 1].getrightX();
+		} catch (Exception e) {
+			//: Adds a standard padding to the classes that are a the edge
+			height_left = standard.padding;
+		}
+
+		//: returns the largest x value
+		if (height_above > height_left) {
+			return height_above;
+		} else {
+			return height_left;
+		}
 
 	}
 

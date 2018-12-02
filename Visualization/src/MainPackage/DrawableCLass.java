@@ -22,9 +22,8 @@ public class DrawableCLass {
 	public Rectangle titleBorder;
 	public Rectangle methodBorder;
 
-	// : The width and height of the longest text
+	// : The width of the longest text
 	private double maxWidth;
-	private double maxHeight;
 
 	private StandardValues standard = new StandardValues();
 
@@ -34,17 +33,15 @@ public class DrawableCLass {
 
 		// : Get's the max width;
 		maxWidth = getMaxWidht();
-		maxHeight = getMaxHeightTitle()+getMaxHeightAttribute()+getMaxHeightMethod();
-		totalBorder = new Rectangle(x, y, maxWidth, maxHeight);
-		createTitleBox();
+		createTitleBox(x, y);
 		createAttributeBox();
 		createMethodBox();
-		
+		createTotallBox();
 
 	}
-	
-	public void createTitleBox() {
-		titleBorder = new Rectangle(totalBorder.getX(), totalBorder.getY(), maxWidth, getMaxHeightTitle());
+
+	public void createTitleBox(double x, double y) {
+		titleBorder = new Rectangle(x, y, maxWidth, standard.height);
 	}
 
 	public void createAttributeBox() {
@@ -54,7 +51,7 @@ public class DrawableCLass {
 		double attributeY = titleBorder.getY() + titleBorder.getHeight();
 		double linePadding = 10;
 
-		double totall_height = 0;
+		double totall_height = standard.paddingY + standard.paddingY;
 		for (int i = 0; i < UMLclass.Variables.size(); i++) {
 			totall_height += textheight + linePadding;
 		}
@@ -62,7 +59,7 @@ public class DrawableCLass {
 		attributeBorder = new Rectangle(attributeX, attributeY, maxWidth, totall_height);
 
 	}
-	
+
 	public void createMethodBox() {
 
 		double textheight = getTextHeight("Example Text");
@@ -70,13 +67,32 @@ public class DrawableCLass {
 		double attributeY = attributeBorder.getY() + attributeBorder.getHeight();
 		double linePadding = 10;
 
-		double totall_height = 0;
+		double totall_height = standard.paddingY + standard.paddingY;
 		for (int i = 0; i < UMLclass.Methods.size(); i++) {
 			totall_height += textheight + linePadding;
 		}
-		//bit hardcode, total height needs to account for first box
-		methodBorder = new Rectangle(attributeX, attributeY, maxWidth, totall_height+titleBorder.getHeight());
+		// bit hardcode, total height needs to account for first box
+		methodBorder = new Rectangle(attributeX, attributeY, maxWidth, totall_height);
 
+	}
+
+	public void createTotallBox() {
+
+		double attributeX = titleBorder.getX();
+		double attributeY = titleBorder.getY();
+		double width = maxWidth;
+		double height = titleBorder.getHeight() + attributeBorder.getHeight() + methodBorder.getHeight();
+
+		totalBorder = new Rectangle(attributeX, attributeY, width, height);
+
+	}
+
+	public double getX() {
+		return totalBorder.getX();
+	}
+
+	public double getY() {
+		return totalBorder.getY();
 	}
 
 	public double getrightX() {
@@ -92,25 +108,23 @@ public class DrawableCLass {
 		drawAttributeBox(cx, attributeBorder);
 		drawMethodBox(cx, methodBorder);
 
-//	
+		//
 	}
-
-
 
 	private void drawTitleBox(GraphicsContext cx, Rectangle rect) {
 		double paddingX = 50;
 		double textheight = getTextHeight("Example Text");
-		
+
 		cx.setFill(Color.PURPLE);
 		cx.setLineWidth(2);
 		cx.fillRect(rect.getX(), rect.getY(), rect.getWidth(), rect.getHeight());
 
-		cx.setFont(StandardValues.font);
+		cx.setFont(standard.font);
 		cx.setStroke(Color.AQUA);
 
 		double titleX = rect.getX() + paddingX;
 		double titleY = rect.getY() + textheight;
-		
+
 		cx.strokeText(gettitleText(), titleX, titleY);
 
 	}
@@ -134,7 +148,7 @@ public class DrawableCLass {
 
 		boxBottomLine2 = (rect.getHeight() - boxBottomLine - 10) / 2;
 
-		cx.setFont(StandardValues.font);
+		cx.setFont(standard.font);
 		cx.setStroke(Color.AQUA);
 		for (int i = 0; i < UMLclass.Variables.size(); i++) {
 			String attibuteValue = getAttributeText(UMLclass.Variables.get(i));
@@ -149,18 +163,19 @@ public class DrawableCLass {
 	}
 
 	private void drawMethodBox(GraphicsContext cx, Rectangle rect) {
+
 		double textheight = getTextHeight("Example Text");
 		double paddingX = 50;
 		double paddingY = 50;
 		double attributeX = rect.getX() + paddingX;
 		double attributeY = rect.getY() + paddingY;
 		double linePadding = 10;
-		
+
 		cx.setFill(Color.BLACK);
 		cx.setLineWidth(2);
 		cx.fillRect(rect.getX(), rect.getY(), rect.getWidth(), rect.getHeight());
 
-		cx.setFont(StandardValues.font);
+		cx.setFont(standard.font);
 		cx.setStroke(Color.AQUA);
 		for (int i = 0; i < UMLclass.Methods.size(); i++) {
 			String attibuteValue = getMethodText(UMLclass.Methods.get(i));
@@ -176,7 +191,7 @@ public class DrawableCLass {
 
 	// : compares all values in the class , to find the largest
 	private double getMaxWidht() {
-		double currentMax = StandardValues.width;
+		double currentMax = standard.width;
 
 		double titleWidth = getTextWidth(this.gettitleText());
 		if (titleWidth > currentMax) {
@@ -197,17 +212,16 @@ public class DrawableCLass {
 			}
 		}
 
-		return currentMax;
-	}
-
-	private double getTextWidth(String msg) {
-		final Text text = new Text(msg);
-		text.setFont(StandardValues.font);
-		return text.getLayoutBounds().getWidth();
+		if(currentMax == standard.width) {
+			return currentMax;
+		}else {
+			return currentMax + standard.paddingX + standard.paddingX;
+		}
+		
 	}
 
 	private double getMaxHeightTitle() {
-		double currentMax = StandardValues.height;
+		double currentMax = standard.height;
 		double titleHeight = getTextHeight(this.gettitleText()) * 2;
 
 		return titleHeight;
@@ -215,7 +229,7 @@ public class DrawableCLass {
 	}
 
 	private double getMaxHeightAttribute() {
-		double currentMax = StandardValues.height;
+		double currentMax = standard.height;
 		double i = 0;
 		double titleHeight = getTextHeight(this.gettitleText());
 
@@ -238,7 +252,11 @@ public class DrawableCLass {
 		return currentMax;
 	}
 
-	
+	private double getTextWidth(String msg) {
+		final Text text = new Text(msg);
+		text.setFont(standard.font);
+		return text.getLayoutBounds().getWidth();
+	}
 
 	private double getTextHeight(String msg) {
 		final Text text = new Text(msg);
