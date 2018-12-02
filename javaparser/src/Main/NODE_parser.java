@@ -32,12 +32,7 @@ public class NODE_parser {
 
 	public static void main(String[] args) throws Exception {
 
-		JsonArray network = tcp.client.getFromNetwork("visualizer");
-		JsonObject client = network.get(0).getAsJsonObject();
-
-		String ip = client.get("ip").getAsString();
-		int port = client.get("port").getAsInt();
-		tcp.client.connect(ip, port);
+		tcp.client.connectTNetwork("visualizer");
 
 		tcp.server.initializeServer();
 		tcp.server.startFileServer(new RunnableArg<File>() {
@@ -70,6 +65,8 @@ public class NODE_parser {
 				//: Deleted the files after the parsed data is sent to the visualizer.
 				zip.deleteFile(unzipedFile);
 				zip.deleteFile(recivedFile);
+				System.out.println("File cleaned");
+				System.out.println("Ready to parse");
 			
 			}
 		});

@@ -31,6 +31,7 @@ import java.io.BufferedOutputStream;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
+import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -48,6 +49,7 @@ import java.nio.CharBuffer;
 import java.nio.channels.SocketChannel;
 import java.nio.charset.Charset;
 import java.nio.charset.CharsetDecoder;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Scanner;
 
@@ -70,45 +72,43 @@ public class TCPClient {
 
 		OutputStreamWriter out;
 		try {
-			//Send the message to the server
-            OutputStream os = socket.getOutputStream();
-            OutputStreamWriter osw = new OutputStreamWriter(os);
-            BufferedWriter bw = new BufferedWriter(osw);
-            osw.write(message);
-            osw.flush();
+			// Send the message to the server
+			OutputStream os = socket.getOutputStream();
+			OutputStreamWriter osw = new OutputStreamWriter(os);
+			BufferedWriter bw = new BufferedWriter(osw);
+			osw.write(message);
+			osw.flush();
 			System.out.println("Wrote " + message.getBytes().length + " bytes to the server");
 		} catch (IOException e) {
 		}
 	}
-
-	public void sendFile(File Unziped_file) throws IOException {
+	
+	public void sendFile(File file) throws IOException {
 		
-		String filePath = Unziped_file.getAbsolutePath();
-		zip.compress(filePath);
-		String newPath = filePath.concat(".zip");
-		
-		File file = new File(newPath);
-		
-		FileInputStream fis = null;
-		BufferedInputStream bis = null;
-		OutputStream os = null;
-		try {
-			byte b[] = new byte[(int) file.length()];
-			fis = new FileInputStream(file);
-			bis = new BufferedInputStream(fis);
-			bis.read(b, 0, b.length);
-			os = getSocket().getOutputStream();
-			os.write(b, 0, b.length);
-			os.flush();
-			file.delete();
-		} finally {
-			if (bis != null)
-				bis.close();
-			if (os != null)
-				os.close();
-			if (getSocket() != null)
-				getSocket().close();
+		//: if the file is directory , it is ziped and sent.
+		if(file.isDirectory()) {
 			
+			File compressedFile = null;
+			try {
+				compressedFile = zip.compress(file);
+				send_a_file(compressedFile);
+			} finally {
+				//: deletes the ziped file.
+				compressedFile.delete();
+			}
+	
+		//: if it is a normal file it is send normally.
+		}else if(file.isFile()) {
+			send_a_file(file);
+		}
+		
+	}
+	
+	private void send_a_file(File file) throws IOException {
+		BufferedOutputStream out = new BufferedOutputStream(socket.getOutputStream());
+		try (DataOutputStream d = new DataOutputStream(out)) {
+			d.writeUTF(file.getName());
+			Files.copy(file.toPath(), d);
 		}
 	}
 
@@ -124,7 +124,7 @@ public class TCPClient {
 		return this.getSocket().getPort();
 	}
 
-	public JsonArray getFromNetwork(String nodeName) throws Exception {
+	public void connectTNetwork(String nodeName) throws Exception {
 
 		post.addPostParamter("action", "lookup");
 		post.addPostParamter("name", nodeName);
@@ -139,7 +139,12 @@ public class TCPClient {
 
 		JsonArray obj = root.getAsJsonArray();
 
-		return obj;
+		JsonObject client = obj.get(0).getAsJsonObject();
+
+		String ip = client.get("ip").getAsString();
+		int port = client.get("port").getAsInt();
+
+		this.connect(ip, port);
 
 	}
 

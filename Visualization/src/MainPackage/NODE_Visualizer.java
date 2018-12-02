@@ -1,4 +1,4 @@
-	package MainPackage;
+package MainPackage;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -21,16 +21,17 @@ import javafx.scene.image.WritableImage;
 
 public class NODE_Visualizer extends Application {
 
+	public static String project_name = "UMLFromJava";
 	public static ArrayList<UMLClass> umlClasses = new ArrayList<UMLClass>();
 	public static DrawableCLass[][] classes;
 	public static TCP tcp = new TCP();
 	ZIP zip = new ZIP();
-	
+
 	public static String[] systemArgs;
-	
+
 	public static void main(String[] args) throws Exception {
 		systemArgs = args;
-		
+
 		tcp.server.initializeServer();
 		tcp.server.start(new RunnableArg<String>() {
 
@@ -38,16 +39,20 @@ public class NODE_Visualizer extends Application {
 			public void run() {
 
 				String raw_data = this.getArg();
-				System.out.println(raw_data.length());
 				Gson javaParser = new Gson();
 				TCP_data data = javaParser.fromJson(raw_data, TCP_data.class);
 
 				if (data.metaData.equals("Parsed data")) {
 
+					System.out.println("Recived parsed data");
+
 					UMLPackage project = javaParser.fromJson(data.data, UMLPackage.class);
 
-					umlClasses = getClasses(project);
+					project_name = project.name;
 					
+					umlClasses = getClasses(project);
+
+					System.out.println("Begning visualizing");
 					Lanchprogram();
 
 				}
@@ -57,13 +62,13 @@ public class NODE_Visualizer extends Application {
 
 		tcp.server.post.addPostParamter("master_node", "true");
 		tcp.server.addToNetwork("visualizer");
-		
+
 	}
 
 	public static void Lanchprogram() {
 		launch(systemArgs);
 	}
-	
+
 	@Override
 	public void start(Stage primaryStage) throws Exception {
 
@@ -71,13 +76,13 @@ public class NODE_Visualizer extends Application {
 
 		double Canvas_height = getCanvasHeight();
 		double Canvas_width = getCanvasWidth();
-		
-		if(Canvas_height > Canvas_width) {
+
+		if (Canvas_height > Canvas_width) {
 			Canvas_width = Canvas_height;
-		}else {
+		} else {
 			Canvas_height = Canvas_width;
 		}
-		
+
 		Canvas canvas = new Canvas();
 		canvas.setHeight(Canvas_height);
 		canvas.setWidth(Canvas_width);
@@ -86,24 +91,16 @@ public class NODE_Visualizer extends Application {
 		drawElemements(cx);
 
 		File uml_picture = saveToImage(canvas);
+
+		System.out.println("Visualizing comeplete");
+
+		tcp.client.connectTNetwork("client");
+		tcp.client.sendFile(uml_picture);
+
+		System.out.println("Picture sent to clients");
 		
-		try {
-
-			JsonArray clients = tcp.client.getFromNetwork("client");
-
-			for (int i = 0; i < clients.size(); i++) {
-
-				JsonObject client = clients.get(i).getAsJsonObject();
-
-				String ip = client.get("ip").getAsString();
-				int port = client.get("port").getAsInt();
-
-				tcp.client.connect(ip, port);
-				tcp.client.sendFile(uml_picture);
-
-			}
-		} catch (Exception e) {
-		}
+		uml_picture.delete();
+		System.out.println("Cleanup comeplete");
 	}
 
 	public static ArrayList<UMLClass> getClasses(UMLPackage inputPackage) {
@@ -179,7 +176,7 @@ public class NODE_Visualizer extends Application {
 
 		for (int i = 0; i < umlClasses.size(); i++) {
 
-			classes[Y][X] = createClass(Y, X , umlClasses.get(i));
+			classes[Y][X] = createClass(Y, X, umlClasses.get(i));
 
 			// : checks for new row.
 			if (X == sqr) {
@@ -246,7 +243,9 @@ public class NODE_Visualizer extends Application {
 
 		canvas.snapshot(null, wim);
 
-		File file = new File("CanvasImage.png");
+		String imagename = project_name + ".png";
+		
+		File file = new File(imagename);
 
 		try {
 			ImageIO.write(SwingFXUtils.fromFXImage(wim, null), "png", file);

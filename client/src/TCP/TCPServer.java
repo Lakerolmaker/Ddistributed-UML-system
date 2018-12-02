@@ -36,6 +36,8 @@ import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
 import java.nio.charset.Charset;
 import java.nio.charset.CharsetDecoder;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Scanner;
@@ -123,10 +125,10 @@ public class TCPServer {
 					try {
 						socket = server.accept();
 						File file = saveFile(socket);
-						
+
 						invocation.setArg(file);
 						invocation.run();
-						
+
 					} catch (Exception e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
@@ -145,7 +147,7 @@ public class TCPServer {
 
 	}
 
-	public File saveFile(Socket socket) throws Exception {
+	public File savedir(Socket socket) throws Exception {
 		String CurrentDir = System.getProperty("user.dir");
 		String newFilePath = CurrentDir + "/newfile.zip";
 		File file = new File(newFilePath);
@@ -170,6 +172,19 @@ public class TCPServer {
 		}
 		return file;
 
+	}
+
+	public File saveFile(Socket socket) throws Exception {
+		BufferedInputStream in = new BufferedInputStream(socket.getInputStream());
+		String fileName = null;
+		File newFile = null;
+		try (DataInputStream d = new DataInputStream(in)) {
+			fileName = d.readUTF();
+			newFile = new File(fileName);
+			Files.copy(d, Paths.get(newFile.getPath()));
+		} catch (Exception e) {
+		}
+		return newFile;
 	}
 
 	private static int findFreePort() {

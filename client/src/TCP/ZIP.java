@@ -22,9 +22,9 @@ public class ZIP {
 
 	public String CurrentDir = System.getProperty("user.dir");
 
-	public static void compress(String dirPath) {
-		Path sourceDir = Paths.get(dirPath);
-		String zipFileName = dirPath.concat(".zip");
+	public File compress(File file) {
+		Path sourceDir = Paths.get(file.getAbsolutePath());
+		String zipFileName = file.getName().concat(".zip");
 		try {
 			ZipOutputStream outputStream = new ZipOutputStream(new FileOutputStream(zipFileName));
 			Files.walkFileTree(sourceDir, new SimpleFileVisitor<Path>() {
@@ -46,6 +46,7 @@ public class ZIP {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+		return new File(zipFileName);
 	}
 
 	public File uncompress(File zippedFile) {

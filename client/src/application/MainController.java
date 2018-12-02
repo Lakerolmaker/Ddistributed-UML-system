@@ -1,6 +1,5 @@
 package application;
 
-
 import java.awt.Desktop;
 import java.io.File;
 import java.io.IOException;
@@ -29,58 +28,61 @@ import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
 import javafx.stage.DirectoryChooser;
+import javafx.stage.FileChooser;
+import javafx.stage.FileChooser.ExtensionFilter;
 import ui.RingProgressIndicator;
 
-public class MainController implements Initializable{
-    
+public class MainController implements Initializable {
+
 	TCP tcp = new TCP();
 	ZIP zip = new ZIP();
-	
+
 	@FXML
 	public Button selectFile;
 	@FXML
 	public TextArea textArea;
 	@FXML
 	public StackPane stackPane;
-	@FXML 
+	@FXML
 	public Pane linkPane;
-	
-	//test the text area
+
+	// test the text area
 	public void addNumbers(ActionEvent event) {
-		int a= 4, b = 6;
-		int x =  a+b;
+		int a = 4, b = 6;
+		int x = a + b;
 		textArea.setText(Integer.toString(x));
 	}
-	
+
 	DirectoryChooser directoryChooser = new DirectoryChooser();
 	public void uploadFile() throws Exception {
 		File selectedDirectory = directoryChooser.showDialog(NODE_client.myStage);
-		 if(selectedDirectory != null){
-			 sendFile(selectedDirectory.getAbsolutePath());
-         }
+		if (selectedDirectory != null) {
+			sendFile(selectedDirectory.getAbsolutePath());
+		}
 	}
-	
-	public void sendFile(String filePath) throws Exception{
+
+	public void sendFile(String filePath) throws Exception {
 
 		File newFile = new File(filePath);
-		
+
 		tcp.client.sendFile(newFile);
-		
+
 	}
 
-	@Override     //it initialises 
-	public void initialize(URL arg0, ResourceBundle arg1)  {
+	@Override // it initialises
+	public void initialize(URL arg0, ResourceBundle arg1) {
 		String colour = "abcdef";
-		linkPane.setBackground(new Background(new BackgroundFill(Color.web("#" + colour), CornerRadii.EMPTY, Insets.EMPTY)));
+		linkPane.setBackground(
+				new Background(new BackgroundFill(Color.web("#" + colour), CornerRadii.EMPTY, Insets.EMPTY)));
 		RingProgressIndicator ringProgressIndicator = new RingProgressIndicator();
 		ringProgressIndicator.setRingWidth(30);
 		ringProgressIndicator.makeIndeterminate();
-		
+
 		stackPane.getChildren().add(ringProgressIndicator);
-		
+
 		ProgressThread pt = new ProgressThread(ringProgressIndicator);
 		pt.start();
-		
+
 		try {
 			initTCP();
 		} catch (Exception e) {
@@ -88,17 +90,9 @@ public class MainController implements Initializable{
 		}
 
 	}
-	
+
 	public void initTCP() throws Exception {
 
-		JsonArray network = tcp.client.getFromNetwork("parser");
-		JsonObject client = network.get(0).getAsJsonObject();
-
-		String ip = client.get("ip").getAsString();
-		int port = client.get("port").getAsInt();
-
-		tcp.client.connect(ip, port);
-		
 		tcp.server.initializeServer();
 		tcp.server.startFileServer(new RunnableArg<File>() {
 
@@ -106,25 +100,22 @@ public class MainController implements Initializable{
 			public void run() {
 				// TODO Auto-generated method stub
 				File file = this.getArg();
-				
-				File unzipped_file = zip.uncompress(file);
-				
-				
+
 				Desktop dt = Desktop.getDesktop();
-			    try {
-					dt.open(unzipped_file);
+				try {
+					dt.open(file);
 				} catch (IOException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
-				
+
 			}
-			
+
 		});
 		tcp.server.addToNetwork("client");
-		
+
+		tcp.client.connectTNetwork("parser");
+
 	}
 
-
 }
-
