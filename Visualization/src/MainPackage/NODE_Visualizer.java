@@ -237,7 +237,12 @@ public class NODE_Visualizer extends Application {
 		if (height_above > height_left) {
 			return height_above;
 		} else {
-			return height_left;
+			if(y == 0) {
+				return height_left + standard.padding;
+			}else {
+				return height_left;
+			}
+			
 		}
 
 	}
