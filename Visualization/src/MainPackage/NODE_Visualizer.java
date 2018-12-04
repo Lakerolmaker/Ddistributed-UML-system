@@ -12,6 +12,7 @@ import FileClasses.UMLPackage;
 import TCP.RunnableArg;
 import TCP.TCP;
 import TCP.TCP_data;
+import TCP.ZIP;
 import javafx.application.Application;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.stage.Stage;
@@ -20,10 +21,11 @@ import javafx.scene.image.WritableImage;
 
 public class NODE_Visualizer extends Application {
 
+	public static String project_name = "UMLFromJava";
 	public static ArrayList<UMLClass> umlClasses = new ArrayList<UMLClass>();
 	public static DrawableCLass[][] classes;
 	public static TCP tcp = new TCP();
-	StandardValues standard = new StandardValues();
+	ZIP zip = new ZIP();
 
 	public static String[] systemArgs;
 
@@ -37,16 +39,20 @@ public class NODE_Visualizer extends Application {
 			public void run() {
 
 				String raw_data = this.getArg();
-				System.out.println(raw_data.length());
 				Gson javaParser = new Gson();
 				TCP_data data = javaParser.fromJson(raw_data, TCP_data.class);
 
 				if (data.metaData.equals("Parsed data")) {
 
+					System.out.println("Recived parsed data");
+
 					UMLPackage project = javaParser.fromJson(data.data, UMLPackage.class);
 
+					project_name = project.name;
+					
 					umlClasses = getClasses(project);
 
+					System.out.println("Begning visualizing");
 					Lanchprogram();
 
 				}
@@ -69,35 +75,32 @@ public class NODE_Visualizer extends Application {
 		creatElements();
 
 		double Canvas_height = getCanvasHeight();
+		double Canvas_width = getCanvasWidth();
+
+		if (Canvas_height > Canvas_width) {
+			Canvas_width = Canvas_height;
+		} else {
+			Canvas_height = Canvas_width;
+		}
+
 		Canvas canvas = new Canvas();
 		canvas.setHeight(Canvas_height);
-		canvas.setWidth(Canvas_height);
+		canvas.setWidth(Canvas_width);
 
 		GraphicsContext cx = canvas.getGraphicsContext2D();
-
 		drawElemements(cx);
 
-		saveToImage(canvas);
+		File uml_picture = saveToImage(canvas);
 
-		System.exit(0);
+		System.out.println("Visualizing comeplete");
 
-		try {
+		tcp.client.connectTNetwork("client");
+		tcp.client.sendFile(uml_picture);
 
-			JsonArray clients = tcp.client.getFromNetwork("client");
-
-			for (int i = 0; i < clients.size(); i++) {
-
-				JsonObject client = clients.get(i).getAsJsonObject();
-
-				String ip = client.get("ip").getAsString();
-				int port = client.get("port").getAsInt();
-
-				tcp.client.connect(ip, port);
-				tcp.client.send("file");
-
-			}
-		} catch (Exception e) {
-		}
+		System.out.println("Picture sent to clients");
+		
+		uml_picture.delete();
+		System.out.println("Cleanup comeplete");
 	}
 
 	public static ArrayList<UMLClass> getClasses(UMLPackage inputPackage) {
@@ -131,7 +134,7 @@ public class NODE_Visualizer extends Application {
 
 			}
 		}
-		return maxWidth + standard.canvasPadding_Y;
+		return maxWidth + StandardValues.canvasPadding_Y;
 	}
 
 	public double getCanvasHeight() {
@@ -148,7 +151,7 @@ public class NODE_Visualizer extends Application {
 
 			}
 		}
-		return maxHeight + standard.canvasPadding_Y;
+		return maxHeight + StandardValues.canvasPadding_Y;
 	}
 
 	public void drawElemements(GraphicsContext cx) {
@@ -193,6 +196,9 @@ public class NODE_Visualizer extends Application {
 		double ClassX = getpreviousX(y, x);
 		double ClassY = getpreviousY(y, x);
 
+		ClassX += StandardValues.padding;
+		ClassY += StandardValues.padding;
+
 		DrawableCLass newClass = new DrawableCLass(ClassX, ClassY, umlClass);
 
 		return newClass;
@@ -208,46 +214,27 @@ public class NODE_Visualizer extends Application {
 			width = classes[y - 1][x].getbottomY();
 
 		} catch (Exception e) {
-			
 		}
 
-		return width + standard.padding;
+		return width;
 	}
 
 	public double getpreviousX(int y, int x) {
 
-		double height_above = 0;
-		double height_left = 0;
- 
-		try {
-			height_above = classes[y - 1][x].getX();
-		} catch (Exception e) {
-			//: Adds a standard padding to the classes that are a the edge
-			height_above = standard.padding;
-		}
+		double height = 0;
 
 		try {
-			height_left = classes[y][x - 1].getrightX();
+
+			height = classes[y][x - 1].getrightX();
+
 		} catch (Exception e) {
-			//: Adds a standard padding to the classes that are a the edge
-			height_left = standard.padding;
 		}
 
-		//: returns the largest x value
-		if (height_above > height_left) {
-			return height_above;
-		} else {
-			if(y == 0) {
-				return height_left + standard.padding;
-			}else {
-				return height_left;
-			}
-			
-		}
+		return height;
 
 	}
 
-	public void saveToImage(Canvas canvas) {
+	public File saveToImage(Canvas canvas) {
 
 		int width = (int) canvas.getHeight();
 		int height = (int) canvas.getWidth();
@@ -256,13 +243,15 @@ public class NODE_Visualizer extends Application {
 
 		canvas.snapshot(null, wim);
 
-		File file = new File("CanvasImage.png");
+		String imagename = project_name + ".png";
+		
+		File file = new File(imagename);
 
 		try {
 			ImageIO.write(SwingFXUtils.fromFXImage(wim, null), "png", file);
 		} catch (Exception s) {
 		}
-
+		return file;
 	}
 
 }
