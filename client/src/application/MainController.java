@@ -10,6 +10,8 @@ import javafx.fxml.Initializable;
 import javafx.geometry.Insets;
 import javafx.scene.control.Button;
 import javafx.scene.control.TextArea;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.CornerRadii;
@@ -19,7 +21,7 @@ import javafx.scene.paint.Color;
 import ui.RingProgressIndicator;
 
 public class MainController implements Initializable{
-/*Ä
+/*ï¿½
 	//Constructor
 	public MainController(){
 		
@@ -39,7 +41,20 @@ public class MainController implements Initializable{
 	public StackPane stackPane;
 	@FXML 
 	public Pane linkPane;
-	
+	@FXML
+	public ImageView imagePane;
+	@FXML
+    private Button btn4;
+
+    @FXML
+    private Button btn2;
+
+    @FXML
+    private Button btn3;
+
+    @FXML
+    private Button btn1;
+
 	private Main main;
 	public void setMain(Main main) {
 		this.main = main;
@@ -60,6 +75,30 @@ public class MainController implements Initializable{
 			textArea.setText(fc.readFile(fc.file));
 		}
 	}
+	
+	public void imageChooser1(ActionEvent event) {
+		Image image = new Image("/images/alemseged amoredolce-logo.png");
+		//Image image = new Image("/images/20180826_143026.jpg");
+		imagePane.setImage(image);
+		
+	}
+	public void imageChooser2(ActionEvent event) {
+		Image image = new Image("/images/gatys_results.png");
+		//Image image = new Image("/images/20180826_143026.jpg");
+		imagePane.setImage(image);
+		
+	}
+	public void imageChooser3(ActionEvent event) {
+		Image image = new Image("/images/alemseged-bouquets-prime-100-red-roses-64_1000.jpg");
+		//Image image = new Image("/images/20180826_143026.jpg");
+		imagePane.setImage(image);
+	}
+	public void imageChooser4(ActionEvent event) {
+		Image image = new Image("/images/alemseged.png");
+		//Image image = new Image("/images/20180826_143026.jpg");
+		imagePane.setImage(image);
+	}
+		
 
 	@Override     //it initialises 
 	public void initialize(URL arg0, ResourceBundle arg1) {
