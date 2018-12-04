@@ -24,56 +24,52 @@ import FileClasses.Variable;
 import TCP.RunnableArg;
 import TCP.TCP;
 import TCP.TCP_data;
+import TCP.ZIP;
 
-public class main {
+public class NODE_parser {
+
+	public static TCP tcp = new TCP();
 
 	public static void main(String[] args) throws Exception {
 
-		TCP tcp = new TCP();
+		tcp.client.connectTNetwork("visualizer");
 
-		JsonArray clients = tcp.client.getFromNetwork("visualizer");
-		JsonObject client = clients.get(0).getAsJsonObject();
-
-		String ip = client.get("ip").getAsString();
-		int port = client.get("port").getAsInt();
-
-		tcp.client.connect(ip, port);
-		
-		String CurrentDir = System.getProperty("user.dir");
-		String inputFolder_Path = CurrentDir + "/InputFiles";
-
-		UMLPackage project = Parse(new File(inputFolder_Path));
-
-		Gson jsonParser = new Gson();
-		String project_json = jsonParser.toJson(project);
-		
-		TCP_data data = new TCP_data();
-		data.setData(project_json);
-		data.setMetaData("Parsed data");
-
-		String data_json = jsonParser.toJson(data);
-		
-		System.out.println(data_json.length());
-		
-		tcp.client.send(data_json + "\n");
-		
 		tcp.server.initializeServer();
-
-		tcp.server.start(new RunnableArg<String>() {
+		tcp.server.startFileServer(new RunnableArg<File>() {
 
 			@Override
 			public void run() {
 
-				String CurrentDir = System.getProperty("user.dir");
-				String inputFolder_Path = CurrentDir + "/InputFiles";
+				System.out.println("Recived data");
 
-				UMLPackage project = Parse(new File(inputFolder_Path));
+				ZIP zip = new ZIP();
+				File recivedFile = this.getArg();
 
-				System.out.println("done");
+				File unzipedFile = zip.uncompress(recivedFile);
 
+				UMLPackage project = Parse(unzipedFile);
+
+				Gson jsonParser = new Gson();
+				String project_json = jsonParser.toJson(project);
+
+				TCP_data data = new TCP_data();
+				data.setData(project_json);
+				data.setMetaData("Parsed data");
+
+				String data_json = jsonParser.toJson(data);
+
+				tcp.client.send(data_json + "\n");
+				System.out.println("Parsed data sent");
+				
+				
+				//: Deleted the files after the parsed data is sent to the visualizer.
+				zip.deleteFile(unzipedFile);
+				zip.deleteFile(recivedFile);
+				System.out.println("File cleaned");
+				System.out.println("Ready to parse");
+			
 			}
 		});
-		
 		tcp.server.addToNetwork("parser");
 
 	}

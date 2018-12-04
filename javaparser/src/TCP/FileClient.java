@@ -1,9 +1,10 @@
 package TCP;
 
-import java.io.BufferedOutputStream;
-import java.io.FileOutputStream;
+import java.io.BufferedInputStream;
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.Socket;
 
 /*
@@ -28,23 +29,25 @@ public class FileClient {
 	}
 
 	public void sendFile(Socket sr) throws IOException {
-		FileOutputStream fos = null;
-		BufferedOutputStream bos = null;
-		InputStream is = null;
+		FileInputStream fis = null;
+		BufferedInputStream bis = null;
+		OutputStream os = null;
 		try {
-			is = sr.getInputStream();
-			fos = new FileOutputStream("C:\\Users\\duyka\\imafucktard.zip");
-			bos = new BufferedOutputStream(fos);
-			int c = 0;
-			byte[] b = new byte[2048];
-			while ((c = is.read(b)) > 0) {
-				bos.write(b, 0, c);
-			}
+			File myFile = new File("D:\\Download\\duy_is_a_goddamn_idiot.zip");
+			byte b[] = new byte[(int) myFile.length()];
+			fis = new FileInputStream(myFile);
+			bis = new BufferedInputStream(fis);
+			bis.read(b, 0, b.length);
+			os = sr.getOutputStream();
+			os.write(b, 0, b.length);
+			os.flush();
 		} finally {
-			if (is != null)
-				is.close();
-			if (bos != null)
-				bos.close();
+			if (bis != null)
+				bis.close();
+			if (os != null)
+				os.close();
+			if (sr != null)
+				sr.close();
 		}
 	}
 

@@ -1,5 +1,8 @@
 package TCP;
 
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
+
 /*
  * 
  * Modified code from https://gist.github.com/rostyslav
@@ -28,6 +31,10 @@ package TCP;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
+import java.io.DataOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -42,6 +49,7 @@ import java.nio.CharBuffer;
 import java.nio.channels.SocketChannel;
 import java.nio.charset.Charset;
 import java.nio.charset.CharsetDecoder;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Scanner;
 
@@ -52,105 +60,92 @@ import com.google.gson.JsonParser;
 
 public class TCPClient {
 
-	private static Socket socket;
-	private static OutputStream os;
-	private static OutputStreamWriter osw;
-	private static BufferedWriter bw;
+	public Socket socket = null;
 	private PostClass post = new PostClass();
-			
-	 	public SocketChannel client = null;
-	    public InetSocketAddress isa = null;
-	    public RecvThread rt = null;
+	ZIP zip = new ZIP();
 
-	    public void connect(String ipadress , int port) {
-	        int result = 0;
-	        try {
-	            client = SocketChannel.open();
-	            isa = new InetSocketAddress(ipadress, port);
-	            client.connect(isa);
-	            client.configureBlocking(false);
-	        } catch (Exception e) {
-	            e.printStackTrace();
-	        }
+	public void connect(String ipadress, int port) throws UnknownHostException, IOException {
+		socket = new Socket(ipadress, port);
+	}
 
-	    }
+	public void send(String message) {
 
-	    public void send(String message) {
-	        ByteBuffer bytebuf = ByteBuffer.allocate(1024);
-	        int nBytes = 0;
-	        try {
-	            bytebuf = ByteBuffer.wrap(message.getBytes("UTF-8"));
-	            nBytes = client.write(bytebuf);
-	            System.out.println("Wrote " + nBytes + " bytes to the server");
-	        } catch (Exception e) {
-	             System.out.println("Could not send message");
-	        }  
-	    }
-
-	    public void receiveMessage() {
-	        rt = new RecvThread("Receive THread", client);
-	        rt.start();
-	    }
-
-	    public void interruptThread() {
-	        rt.val = false;
-	    }
-
-	    public class RecvThread extends Thread {
-
-	        public SocketChannel sc = null;
-	        public boolean val = true;
-
-	        public RecvThread(String str, SocketChannel client) {
-	            super(str);
-	            sc = client;
-	        }
-
-	        public void run() {
-
-	            System.out.println("Inside receivemsg");
-	            int nBytes = 0;
-	            ByteBuffer buf = ByteBuffer.allocate(2048);
-	            try {
-	                while (val) {
-	                    while ((nBytes = client.read(buf)) > 0) {
-	                        buf.flip();
-	                        Charset charset = Charset.forName("us-ascii");
-	                        CharsetDecoder decoder = charset.newDecoder();
-	                        CharBuffer charBuffer = decoder.decode(buf);
-	                        String result = charBuffer.toString();
-	                        System.out.println(result);
-	                        buf.flip();
-
-	                    }
-	                }
-
-	            } catch (IOException e) {
-	                e.printStackTrace();
-
-	            }
-
-
-	        }
-	    }
-
-	    public JsonArray getFromNetwork(String nodeName) throws Exception {
-	    	
-			post.addPostParamter("action", "lookup");
-			post.addPostParamter("name", nodeName);
-
-			post.URL = "http://api.lakerolmaker.com/network_lookup.php";
-			
-			String reponse = post.post();
-			
-	    	JsonParser jsonparser = new JsonParser();
-	    	
-	    	JsonElement root = jsonparser.parse(reponse);
-	    	
-	    	JsonArray obj = root.getAsJsonArray();
-
-	    	return obj;
-	    	
+		OutputStreamWriter out;
+		try {
+			// Send the message to the server
+			OutputStream os = socket.getOutputStream();
+			OutputStreamWriter osw = new OutputStreamWriter(os);
+			BufferedWriter bw = new BufferedWriter(osw);
+			osw.write(message);
+			osw.flush();
+			System.out.println("Wrote " + message.getBytes().length + " bytes to the server");
+		} catch (IOException e) {
 		}
+	}
+	
+	public void sendFile(File file) throws IOException {
+		
+		//: if the file is directory , it is ziped and sent.
+		if(file.isDirectory()) {
+			
+			File compressedFile = null;
+			try {
+				compressedFile = zip.compress(file);
+				send_a_file(compressedFile);
+			} finally {
+				//: deletes the ziped file.
+				compressedFile.delete();
+			}
+	
+		//: if it is a normal file it is send normally.
+		}else if(file.isFile()) {
+			send_a_file(file);
+		}
+		
+	}
+	
+	private void send_a_file(File file) throws IOException {
+		BufferedOutputStream out = new BufferedOutputStream(socket.getOutputStream());
+		try (DataOutputStream d = new DataOutputStream(out)) {
+			d.writeUTF(file.getName());
+			Files.copy(file.toPath(), d);
+		}
+	}
+
+	public Socket getSocket() {
+		return this.socket;
+	}
+
+	public String getIP() throws IOException {
+		return getSocket().getInetAddress().toString();
+	}
+
+	public int getport() {
+		return this.getSocket().getPort();
+	}
+
+	public void connectTNetwork(String nodeName) throws Exception {
+
+		post.addPostParamter("action", "lookup");
+		post.addPostParamter("name", nodeName);
+
+		post.URL = "http://api.lakerolmaker.com/network_lookup.php";
+
+		String reponse = post.post();
+
+		JsonParser jsonparser = new JsonParser();
+
+		JsonElement root = jsonparser.parse(reponse);
+
+		JsonArray obj = root.getAsJsonArray();
+
+		JsonObject client = obj.get(0).getAsJsonObject();
+
+		String ip = client.get("ip").getAsString();
+		int port = client.get("port").getAsInt();
+
+		this.connect(ip, port);
+
+	}
 
 }
