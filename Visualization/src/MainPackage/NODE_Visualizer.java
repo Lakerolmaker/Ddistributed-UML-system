@@ -24,6 +24,7 @@ public class NODE_Visualizer extends Application {
 	public static String project_name = "UMLFromJava";
 	public static ArrayList<UMLClass> umlClasses = new ArrayList<UMLClass>();
 	public static DrawableCLass[][] classes;
+	StandardValues standard = new StandardValues();
 	public static TCP tcp = new TCP();
 	ZIP zip = new ZIP();
 
@@ -134,7 +135,7 @@ public class NODE_Visualizer extends Application {
 
 			}
 		}
-		return maxWidth + StandardValues.canvasPadding_Y;
+		return maxWidth + standard.canvasPadding_Y;
 	}
 
 	public double getCanvasHeight() {
@@ -151,7 +152,7 @@ public class NODE_Visualizer extends Application {
 
 			}
 		}
-		return maxHeight + StandardValues.canvasPadding_Y;
+		return maxHeight + standard.canvasPadding_Y;
 	}
 
 	public void drawElemements(GraphicsContext cx) {
@@ -196,9 +197,6 @@ public class NODE_Visualizer extends Application {
 		double ClassX = getpreviousX(y, x);
 		double ClassY = getpreviousY(y, x);
 
-		ClassX += StandardValues.padding;
-		ClassY += StandardValues.padding;
-
 		DrawableCLass newClass = new DrawableCLass(ClassX, ClassY, umlClass);
 
 		return newClass;
@@ -214,23 +212,42 @@ public class NODE_Visualizer extends Application {
 			width = classes[y - 1][x].getbottomY();
 
 		} catch (Exception e) {
+			
 		}
 
-		return width;
+		return width + standard.padding;
 	}
 
 	public double getpreviousX(int y, int x) {
 
-		double height = 0;
-
+		double height_above = 0;
+		double height_left = 0;
+ 
 		try {
-
-			height = classes[y][x - 1].getrightX();
-
+			height_above = classes[y - 1][x].getX();
 		} catch (Exception e) {
+			//: Adds a standard padding to the classes that are a the edge
+			height_above = standard.padding;
 		}
 
-		return height;
+		try {
+			height_left = classes[y][x - 1].getrightX();
+		} catch (Exception e) {
+			//: Adds a standard padding to the classes that are a the edge
+			height_left = standard.padding;
+		}
+
+		//: returns the largest x value
+		if (height_above > height_left) {
+			return height_above;
+		} else {
+			if(y == 0) {
+				return height_left + standard.padding;
+			}else {
+				return height_left;
+			}
+			
+		}
 
 	}
 
