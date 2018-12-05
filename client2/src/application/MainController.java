@@ -1,16 +1,25 @@
 package application;
 
-
+import java.awt.Desktop;
+import java.io.File;
+import java.io.IOException;
 import java.net.URL;
 import java.util.ResourceBundle;
 
+import javax.imageio.ImageIO;
+
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+import com.sun.prism.Image;
+
+import TCP.RunnableArg;
+import TCP.TCP;
+import TCP.ZIP;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.geometry.Insets;
-import javafx.geometry.Orientation;
 import javafx.scene.control.Button;
-import javafx.scene.control.ScrollBar;
 import javafx.scene.control.TextArea;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
@@ -20,10 +29,14 @@ import javafx.scene.layout.CornerRadii;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
+import javafx.stage.DirectoryChooser;
+import javafx.stage.FileChooser;
+import javafx.stage.FileChooser.ExtensionFilter;
 import ui.RingProgressIndicator;
 
-public class MainController implements Initializable{
-/*Ä
+
+//public class MainController implements Initializable{
+/*ï¿½
 	//Constructor
 	public MainController(){
 		
@@ -35,14 +48,20 @@ public class MainController implements Initializable{
 	private void createEvents() {	
 	}*/
     
+public class MainController implements Initializable {
+
+	TCP tcp = new TCP();
+	ZIP zip = new ZIP();
+
 	@FXML
 	public Button selectFile;
 	@FXML
 	public TextArea textArea;
 	@FXML
 	public StackPane stackPane;
-	@FXML 
+	@FXML
 	public Pane linkPane;
+
 	@FXML
 	public ImageView imagePane;
 	@FXML
@@ -56,9 +75,6 @@ public class MainController implements Initializable{
 
     @FXML
     private Button btn1;
-    
-    @FXML
-    private ScrollBar scrollbar;
 
 	private Main main;
 	public void setMain(Main main) {
@@ -68,16 +84,16 @@ public class MainController implements Initializable{
 	}
 	//test the text area
 	public void addNumbers(ActionEvent event) {
-		int a= 4, b = 6;
-		int x =  a+b;
+		int a = 4, b = 6;
+		int x = a + b;
 		textArea.setText(Integer.toString(x));
 	}
-	
-	FileUpload fc = new FileUpload();
-	public void uploadFile() {
-		fc.selectFile();
-		if(fc != null) {
-			textArea.setText(fc.readFile(fc.file));
+
+	DirectoryChooser directoryChooser = new DirectoryChooser();
+	public void uploadFile() throws Exception {
+		File selectedDirectory = directoryChooser.showDialog(NODE_client.myStage);
+		if (selectedDirectory != null) {
+			sendFile(selectedDirectory.getAbsolutePath());
 		}
 	}
 	
@@ -103,57 +119,63 @@ public class MainController implements Initializable{
 		//Image image = new Image("/images/20180826_143026.jpg");
 		imagePane.setImage(image);
 	}
-	
-	public void scrollbar1() {
-		Pane root = new Pane();
-//		ScrollBar scrollX = new ScrollBar();
-//		scrollX.setMin(0);
-//		scrollX.setMax(300);
-//		scrollX.setValue(150);
-		
-		ScrollBar scrollY = new ScrollBar();
-		scrollY.setMin(0);
-		scrollY.setMin(300);
-		scrollY.setMin(150);
-		scrollY.setOrientation(Orientation.VERTICAL);
-		scrollY.setTranslateY(20);
-		
-		ScrollBar scrollOpacity=new ScrollBar();
-		scrollOpacity.setMin(0);
-		scrollOpacity.setMax(300);
-		scrollOpacity.setValue(150);
-		scrollOpacity.setTranslateX(100);
-		
-		Button btn1 = new Button();
-		btn1.setTranslateY(20);
-		
-		scrollY.valueProperty().addListener(event->{});
-		btn1.setTranslateY(20 + scrollY.getValue());
-	
-		scrollOpacity.visibleProperty().addListener(event->{
-			btn1.setOpacity(scrollOpacity.getValue()/10);});
-		
-		
-		
-	}
-	
 		
 
-	@Override     //it initialises 
+	public void sendFile(String filePath) throws Exception {
+
+		File newFile = new File(filePath);
+
+		tcp.client.sendFile(newFile);
+
+	}
+
+	@Override // it initialises
 	public void initialize(URL arg0, ResourceBundle arg1) {
 		String colour = "abcdef";
-		linkPane.setBackground(new Background(new BackgroundFill(Color.web("#" + colour), CornerRadii.EMPTY, Insets.EMPTY)));
-		// TODO Auto-generated method stub
+		linkPane.setBackground(
+				new Background(new BackgroundFill(Color.web("#" + colour), CornerRadii.EMPTY, Insets.EMPTY)));
 		RingProgressIndicator ringProgressIndicator = new RingProgressIndicator();
 		ringProgressIndicator.setRingWidth(30);
 		ringProgressIndicator.makeIndeterminate();
-		
+
 		stackPane.getChildren().add(ringProgressIndicator);
-		
+
 		ProgressThread pt = new ProgressThread(ringProgressIndicator);
 		pt.start();
+
+		try {
+			initTCP();
+		} catch (Exception e) {
+			System.err.println("Could not initialize the tcp : " + e.getMessage());
+		}
+
 	}
 
+	public void initTCP() throws Exception {
+
+		tcp.server.initializeServer();
+		tcp.server.startFileServer(new RunnableArg<File>() {
+
+			@Override
+			public void run() {
+				// TODO Auto-generated method stub
+				File file = this.getArg();
+
+				Desktop dt = Desktop.getDesktop();
+				try {
+					dt.open(file);
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+
+			}
+
+		});
+		tcp.server.addToNetwork("client");
+
+		tcp.client.connectTNetwork("parser");
+
+	}
 
 }
-

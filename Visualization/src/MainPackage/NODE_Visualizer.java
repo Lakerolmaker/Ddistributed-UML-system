@@ -195,32 +195,32 @@ public class NODE_Visualizer extends Application {
 		cx.setStroke(Color.PURPLE);
 		cx.setLineWidth(5);
 
-		
+
 		double X;
 		double Y;
-	
+
 		// check if it above
 		if (pointA_Y >= pointB_Y) {
-			
+
 			X = classA.getX() + (classA.getWidth() / 2);
 			Y = classA.getY();
 
 			cx.beginPath();
 			cx.moveTo(X, Y);
-			
+
 			// : draw first line
 			Y -= (standard.padding / 2);
 			cx.lineTo(X, Y);
 			cx.stroke();
-			
+
 		} else {
-			
+
 			X = classA.getX() + (classA.getWidth() / 2);
 			Y = classA.getY() + classA.getHeight();
 
 			cx.beginPath();
 			cx.moveTo(X, Y);
-			
+
 			// : draw first line
 			Y += (standard.padding / 2);
 			cx.lineTo(X, Y);
@@ -238,7 +238,7 @@ public class NODE_Visualizer extends Application {
 			cx.lineTo(X, Y);
 			cx.stroke();
 		}
-		
+
 		cx.closePath();
 
 	}
