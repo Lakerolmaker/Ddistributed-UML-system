@@ -1,5 +1,6 @@
 package MainPackage;
 
+import java.awt.geom.Rectangle2D;
 import java.io.File;
 import java.util.ArrayList;
 
@@ -18,6 +19,7 @@ import javafx.embed.swing.SwingFXUtils;
 import javafx.stage.Stage;
 import javafx.scene.canvas.*;
 import javafx.scene.image.WritableImage;
+import javafx.scene.paint.Color;
 
 public class NODE_Visualizer extends Application {
 
@@ -50,7 +52,7 @@ public class NODE_Visualizer extends Application {
 					UMLPackage project = javaParser.fromJson(data.data, UMLPackage.class);
 
 					project_name = project.name;
-					
+
 					umlClasses = getClasses(project);
 
 					System.out.println("Begning visualizing");
@@ -89,6 +91,7 @@ public class NODE_Visualizer extends Application {
 		canvas.setWidth(Canvas_width);
 
 		GraphicsContext cx = canvas.getGraphicsContext2D();
+
 		drawElemements(cx);
 
 		File uml_picture = saveToImage(canvas);
@@ -99,7 +102,7 @@ public class NODE_Visualizer extends Application {
 		tcp.client.sendFile(uml_picture);
 
 		System.out.println("Picture sent to clients");
-		
+
 		uml_picture.delete();
 		System.out.println("Cleanup comeplete");
 	}
@@ -156,14 +159,88 @@ public class NODE_Visualizer extends Application {
 	}
 
 	public void drawElemements(GraphicsContext cx) {
-		for (int x = 0; x < classes.length; x++) {
-			for (int y = 0; y < classes[x].length; y++) {
+		for (int y = 0; y < classes.length; y++) {
+			for (int x = 0; x < classes[y].length; x++) {
 				try {
-					classes[x][y].draw(cx);
+					classes[y][x].draw(cx);
+					drawArrows(cx, x, y);
 				} catch (Exception e) {
 				}
 			}
 		}
+	}
+
+	private void drawArrows(GraphicsContext cx, int pointA_X, int pointA_Y) {
+
+		for (String id : classes[pointA_Y][pointA_X].UMLclass.composistion) {
+
+			for (int y = 0; y < classes.length; y++) {
+				for (int x = 0; x < classes[y].length; x++) {
+					DrawableCLass newclass = classes[y][x];
+					if (newclass.getName().equals(id)) {
+						drawArrow(cx, pointA_X, pointA_Y, x, y);
+					}
+				}
+			}
+
+		}
+
+	}
+
+	private void drawArrow(GraphicsContext cx, int pointA_X, int pointA_Y, int pointB_X, int pointB_Y) {
+
+		DrawableCLass classA = classes[pointA_Y][pointA_X];
+		DrawableCLass classB = classes[pointB_Y][pointB_X];
+
+		cx.setStroke(Color.PURPLE);
+		cx.setLineWidth(5);
+
+		
+		double X;
+		double Y;
+	
+		// check if it above
+		if (pointA_Y >= pointB_Y) {
+			
+			X = classA.getX() + (classA.getWidth() / 2);
+			Y = classA.getY();
+
+			cx.beginPath();
+			cx.moveTo(X, Y);
+			
+			// : draw first line
+			Y -= (standard.padding / 2);
+			cx.lineTo(X, Y);
+			cx.stroke();
+			
+		} else {
+			
+			X = classA.getX() + (classA.getWidth() / 2);
+			Y = classA.getY() + classA.getHeight();
+
+			cx.beginPath();
+			cx.moveTo(X, Y);
+			
+			// : draw first line
+			Y += (standard.padding / 2);
+			cx.lineTo(X, Y);
+			cx.stroke();
+
+		}
+
+		// : To the edge of the original element
+		if(pointB_X >= pointA_X) {
+			X = classA.getrightX() + (standard.padding / 2);
+			cx.lineTo(X, Y);
+			cx.stroke();
+		}else {
+			X = classA.getX() - (standard.padding / 2);
+			cx.lineTo(X, Y);
+			cx.stroke();
+		}
+		
+		cx.closePath();
+
 	}
 
 	public void creatElements() {
@@ -194,8 +271,8 @@ public class NODE_Visualizer extends Application {
 
 	public DrawableCLass createClass(int y, int x, UMLClass umlClass) {
 
-		double ClassX = getpreviousX(y, x);
-		double ClassY = getpreviousY(y, x);
+		double ClassX = getpreviousX(x);
+		double ClassY = getpreviousY(y);
 
 		DrawableCLass newClass = new DrawableCLass(ClassX, ClassY, umlClass);
 
@@ -203,51 +280,40 @@ public class NODE_Visualizer extends Application {
 
 	}
 
-	public double getpreviousY(int y, int x) {
+	public double getpreviousY(int lineY) {
 
-		double width = 0;
+		double maxY = 0;
 
-		try {
+		for (int x = 0; x < classes[lineY].length; x++) {
+			try {
+				double curY = classes[lineY - 1][x].getY() + classes[lineY - 1][x].getHeight();
+				if (curY > maxY) {
+					maxY = curY;
+				}
+			} catch (Exception e) {
 
-			width = classes[y - 1][x].getbottomY();
-
-		} catch (Exception e) {
-			
+			}
 		}
 
-		return width + standard.padding;
+		return maxY + standard.padding;
 	}
 
-	public double getpreviousX(int y, int x) {
+	public double getpreviousX(int lineX) {
 
-		double height_above = 0;
-		double height_left = 0;
- 
-		try {
-			height_above = classes[y - 1][x].getX();
-		} catch (Exception e) {
-			//: Adds a standard padding to the classes that are a the edge
-			height_above = standard.padding;
-		}
+		double maxX = 0;
 
-		try {
-			height_left = classes[y][x - 1].getrightX();
-		} catch (Exception e) {
-			//: Adds a standard padding to the classes that are a the edge
-			height_left = standard.padding;
-		}
+		for (int y = 0; y < classes[lineX].length; y++) {
+			try {
+				double curX = classes[y][lineX - 1].getX() + classes[y][lineX - 1].getWidth();
+				if (curX > maxX) {
+					maxX = curX;
+				}
+			} catch (Exception e) {
 
-		//: returns the largest x value
-		if (height_above > height_left) {
-			return height_above;
-		} else {
-			if(y == 0) {
-				return height_left + standard.padding;
-			}else {
-				return height_left;
 			}
-			
 		}
+
+		return maxX + standard.padding;
 
 	}
 
@@ -261,7 +327,7 @@ public class NODE_Visualizer extends Application {
 		canvas.snapshot(null, wim);
 
 		String imagename = project_name + ".png";
-		
+
 		File file = new File(imagename);
 
 		try {

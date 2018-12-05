@@ -12,6 +12,7 @@ import javafx.scene.text.Text;
 
 public class DrawableCLass {
 
+	
 	public UMLClass UMLclass;
 	public double width;
 	public double height;
@@ -86,6 +87,10 @@ public class DrawableCLass {
 		totalBorder = new Rectangle(attributeX, attributeY, width, height);
 
 	}
+	
+	public String getName() {
+		return this.UMLclass.name;
+	}
 
 	public double getX() {
 		return totalBorder.getX();
@@ -95,6 +100,14 @@ public class DrawableCLass {
 		return totalBorder.getY();
 	}
 
+	public double getHeight() {
+		return totalBorder.getHeight();
+	}
+	
+	public double getWidth() {
+		return totalBorder.getWidth();
+	}
+	
 	public double getrightX() {
 		return totalBorder.getX() + totalBorder.getWidth();
 	}

@@ -60,14 +60,13 @@ public class NODE_parser {
 
 				tcp.client.send(data_json + "\n");
 				System.out.println("Parsed data sent");
-				
-				
-				//: Deleted the files after the parsed data is sent to the visualizer.
+
+				// : Deleted the files after the parsed data is sent to the visualizer.
 				zip.deleteFile(unzipedFile);
 				zip.deleteFile(recivedFile);
 				System.out.println("File cleaned");
 				System.out.println("Ready to parse");
-			
+
 			}
 		});
 		tcp.server.addToNetwork("parser");
@@ -117,13 +116,57 @@ public class NODE_parser {
 			UMLclass.name = classVisitor(file).name;
 			UMLclass.Methods = methodVistor(file);
 			UMLclass.Variables = variableVisitor(file);
-
+			UMLclass.composistion = compositionAdder(UMLclass.Variables);
+			
 			return UMLclass;
 		} catch (Exception e) {
 			return UMLclass;
 
 		}
 
+	}
+
+	private static ArrayList<String> compositionAdder(ArrayList<Variable> variables) {
+
+		ArrayList<String> composists = new ArrayList<String>();
+
+		for (Variable variable : variables) {
+
+			switch (variable.type) {
+			case "String":
+				break;
+			case "int":
+				break;
+			case "double":
+				break;
+			case "boolean":
+				break;
+			case "char":
+				break;
+			case "float":
+				break;
+			case "Object":
+				break;
+			default:
+				addToList(composists ,variable.type);
+				break;
+			}
+
+		}
+
+		return composists;
+	}
+	
+	private static void addToList(ArrayList<String> variables , String entry) {
+		boolean found = false;
+		for (String variable : variables) {
+			if(variable.equals(entry)) {
+				found = true;
+			}
+		}
+		if(!found) {
+			variables.add(entry);
+		}
 	}
 
 	private static ArrayList<Method> methodVistor(File file) throws Exception {
