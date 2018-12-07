@@ -1,6 +1,6 @@
 .ringindicator{
 	-fx-ring-width: 10.0;
-	-fx-inner-radius: 40.0;
+	-fx-inner-radius: 30.0;
 }
 .ringindicator-inner-circle {
 	-fx-opacity: 0.55;

@@ -187,6 +187,9 @@ public class NODE_Visualizer extends Application {
 
 	}
 
+	private double X;
+	private double Y;
+
 	private void drawArrow(GraphicsContext cx, int pointA_X, int pointA_Y, int pointB_X, int pointB_Y) {
 
 		DrawableCLass classA = classes[pointA_Y][pointA_X];
@@ -194,10 +197,6 @@ public class NODE_Visualizer extends Application {
 
 		cx.setStroke(Color.PURPLE);
 		cx.setLineWidth(5);
-
-
-		double X;
-		double Y;
 
 		// check if it above
 		if (pointA_Y >= pointB_Y) {
@@ -229,17 +228,33 @@ public class NODE_Visualizer extends Application {
 		}
 
 		// : To the edge of the original element
-		if(pointB_X >= pointA_X) {
+		if (pointB_X >= pointA_X) {
 			X = classA.getrightX() + (standard.padding / 2);
 			cx.lineTo(X, Y);
 			cx.stroke();
-		}else {
+		} else {
 			X = classA.getX() - (standard.padding / 2);
 			cx.lineTo(X, Y);
 			cx.stroke();
 		}
 
+		travelVerticaly(cx, pointA_X, pointB_X, classB);
+
 		cx.closePath();
+
+	}
+
+	public void travelVerticaly(GraphicsContext cx, int pointA_X, int pointB_X, DrawableCLass elem) {
+
+		if (pointB_X > pointA_X) {
+			X = elem.getX() - (standard.padding / 2);
+			cx.lineTo(X, Y);
+			cx.stroke();
+		} else {
+			X = elem.getrightX() + (standard.padding / 2);
+			cx.lineTo(X, Y);
+			cx.stroke();
+		}
 
 	}
 
