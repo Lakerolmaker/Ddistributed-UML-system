@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="src" path="client/exampleProject/OOP-assingment-3/src"/>
+	<classpathentry kind="src" path="client/src"/>
+	<classpathentry kind="src" path="client2/exampleProject/OOP-assingment-3/src"/>
+	<classpathentry kind="src" path="client2/src"/>
+	<classpathentry kind="src" path="javaparser/InputFiles/src"/>
+	<classpathentry kind="src" path="javaparser/src"/>
+	<classpathentry kind="src" path="Visualization/src"/>
+	<classpathentry kind="lib" path="javaparser/gson-2.8.jar"/>
+	<classpathentry kind="lib" path="javaparser/javaparser-core-3.0.1.jar"/>
+	<classpathentry kind="lib" path="Visualization/gson-2.8.jar"/>
+	<classpathentry kind="output" path="bin"/>
+</classpath>
