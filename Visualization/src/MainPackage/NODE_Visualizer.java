@@ -55,7 +55,7 @@ public class NODE_Visualizer extends Application {
 
 					umlClasses = getClasses(project);
 
-					System.out.println("Begning visualizing");
+					System.out.println("Beginning visualizing");
 					Lanchprogram();
 
 				}
@@ -177,7 +177,9 @@ public class NODE_Visualizer extends Application {
 			for (int y = 0; y < classes.length; y++) {
 				for (int x = 0; x < classes[y].length; x++) {
 					DrawableCLass newclass = classes[y][x];
-					if (newclass.getName().equals(id)) {
+					String name = newclass.getName();
+					if (name.equals(id)) {
+						System.out.println("Arrow from : " + classes[pointA_Y][pointA_X].getName() + " -> " + name);
 						drawArrow(cx, pointA_X, pointA_Y, x, y);
 					}
 				}
@@ -189,6 +191,8 @@ public class NODE_Visualizer extends Application {
 
 	private double X;
 	private double Y;
+	private double targetX;
+	private double targetY;
 
 	private void drawArrow(GraphicsContext cx, int pointA_X, int pointA_Y, int pointB_X, int pointB_Y) {
 
@@ -196,10 +200,10 @@ public class NODE_Visualizer extends Application {
 		DrawableCLass classB = classes[pointB_Y][pointB_X];
 
 		cx.setStroke(Color.PURPLE);
-		cx.setLineWidth(5);
+		cx.setLineWidth(standard.arrowWidth);
 
-		// check if it above
-		if (pointA_Y >= pointB_Y) {
+		// check if it above or on the same column
+		if (pointB_Y <= pointA_Y) {
 
 			X = classA.getX() + (classA.getWidth() / 2);
 			Y = classA.getY();
@@ -227,24 +231,65 @@ public class NODE_Visualizer extends Application {
 
 		}
 
-		// : To the edge of the original element
-		if (pointB_X >= pointA_X) {
-			X = classA.getrightX() + (standard.padding / 2);
-			cx.lineTo(X, Y);
-			cx.stroke();
+		// : sets the target X and Y
+		// : ( below or at the same level , connects to the above of the target)
+		if (pointA_Y <= pointB_Y) {
+			targetX = classB.getX() + (classB.getWidth() / 2);
+			targetY = classB.getY();
 		} else {
-			X = classA.getX() - (standard.padding / 2);
-			cx.lineTo(X, Y);
-			cx.stroke();
+			targetX = classB.getX() + (classB.getWidth() / 2);
+			targetY = classB.getbottomY();
 		}
 
-		travelVerticaly(cx, pointA_X, pointB_X, classB);
+		// : EDGE CASE target is right below or under
+		if ((pointA_X == pointB_X) && ((pointB_Y == (pointA_Y + 1)) || (pointB_Y == (pointA_Y - 1)))) {
+			finalConnection(cx);
+		} else {
+
+			// : To the edge of the original element
+			if (pointB_X >= pointA_X) {
+				X = classA.getrightX() + (standard.padding / 2);
+				cx.lineTo(X, Y);
+				cx.stroke();
+			} else {
+				X = classA.getX() - (standard.padding / 2);
+				cx.lineTo(X, Y);
+				cx.stroke();
+			}
+
+			travelHorizontaly(cx, pointA_X, pointB_X, classB);
+			travelVerticaly(cx, pointA_Y, pointB_Y, classB);
+
+			finalConnection(cx);
+		}
 
 		cx.closePath();
 
 	}
 
-	public void travelVerticaly(GraphicsContext cx, int pointA_X, int pointB_X, DrawableCLass elem) {
+	public void finalConnection(GraphicsContext cx) {
+		// : Final connection
+		cx.lineTo(targetX, Y);
+		cx.stroke();
+		cx.lineTo(targetX, targetY);
+		cx.stroke();
+	}
+
+	public void travelVerticaly(GraphicsContext cx, int pointA_Y, int pointB_Y, DrawableCLass elem) {
+
+		if (pointB_Y < pointA_Y) {
+			Y = elem.getbottomY() + (standard.padding / 2);
+			cx.lineTo(X, Y);
+			cx.stroke();
+		} else {
+			Y = elem.getY() - (standard.padding / 2);
+			cx.lineTo(X, Y);
+			cx.stroke();
+		}
+
+	}
+
+	public void travelHorizontaly(GraphicsContext cx, int pointA_X, int pointB_X, DrawableCLass elem) {
 
 		if (pointB_X > pointA_X) {
 			X = elem.getX() - (standard.padding / 2);
