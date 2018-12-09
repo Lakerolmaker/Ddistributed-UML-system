@@ -34,7 +34,7 @@ public class NODE_Visualizer extends Application {
 
 	public static void main(String[] args) throws Exception {
 		systemArgs = args;
-
+		
 		tcp.server.initializeServer();
 		tcp.server.start(new RunnableArg<String>() {
 
@@ -75,6 +75,8 @@ public class NODE_Visualizer extends Application {
 	@Override
 	public void start(Stage primaryStage) throws Exception {
 
+		
+		
 		creatElements();
 
 		double Canvas_height = getCanvasHeight();
@@ -163,8 +165,13 @@ public class NODE_Visualizer extends Application {
 			for (int x = 0; x < classes[y].length; x++) {
 				try {
 					classes[y][x].draw(cx);
+				} catch (Exception e) {
+					System.err.println("Could not class Arrow for :" + e.getMessage());
+				}
+				try {
 					drawArrows(cx, x, y);
 				} catch (Exception e) {
+					System.err.println("Could not draw Arrow for :" + e.getMessage());
 				}
 			}
 		}
@@ -189,15 +196,19 @@ public class NODE_Visualizer extends Application {
 	private double Y;
 	private double targetX;
 	private double targetY;
-
+	
 	private void drawArrow(GraphicsContext cx, int pointA_X, int pointA_Y, int pointB_X, int pointB_Y) {
 
 		DrawableCLass classA = classes[pointA_Y][pointA_X];
 		DrawableCLass classB = classes[pointB_Y][pointB_X];
+		
+		increaseColor();
+		Color arrow_color = this.getcolor();
 
-		cx.setStroke(Color.PURPLE);
+		cx.setStroke(arrow_color);
 		cx.setLineWidth(standard.arrowWidth);
 
+		
 		// check if it above or on the same column
 		if (pointB_Y <= pointA_Y) {
 
@@ -393,4 +404,28 @@ public class NODE_Visualizer extends Application {
 		return file;
 	}
 
+	private float hue = 0.0f; //hue
+	private float saturation = 1.0f; //saturation
+	private float brightness = 1.0f; //brightness
+	private Color getcolor() {
+		int rgb =  java.awt.Color.HSBtoRGB(hue, saturation, brightness);
+		int red = (rgb>>16)&0xFF;
+		int green = (rgb>>8)&0xFF;
+		int blue = rgb&0xFF;
+		
+		javafx.scene.paint.Color fxColor = javafx.scene.paint.Color.rgb(red, green, blue, 1);
+		return fxColor;
+	}
+	
+	private float increase = 0.01f;
+	public void increaseColor() {
+		if((hue + increase) < 1.0f)
+			hue += 0.01f;
+		else
+			hue = 0.0f;
+	}
+	
+	
+	
+	
 }
