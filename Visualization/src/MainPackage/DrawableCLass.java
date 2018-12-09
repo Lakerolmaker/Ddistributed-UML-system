@@ -89,7 +89,7 @@ public class DrawableCLass {
 	}
 	
 	public String getName() {
-		return this.UMLclass.name;
+		return this.UMLclass.getName();
 	}
 
 	public double getX() {

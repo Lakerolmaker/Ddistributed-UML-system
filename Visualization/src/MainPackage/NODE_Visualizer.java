@@ -172,19 +172,15 @@ public class NODE_Visualizer extends Application {
 
 	private void drawArrows(GraphicsContext cx, int pointA_X, int pointA_Y) {
 
-		for (String id : classes[pointA_Y][pointA_X].UMLclass.composistion) {
-
-			for (int y = 0; y < classes.length; y++) {
-				for (int x = 0; x < classes[y].length; x++) {
-					DrawableCLass newclass = classes[y][x];
-					String name = newclass.getName();
-					if (name.equals(id)) {
-						System.out.println("Arrow from : " + classes[pointA_Y][pointA_X].getName() + " -> " + name);
-						drawArrow(cx, pointA_X, pointA_Y, x, y);
-					}
+		ArrayList<String> comps = classes[pointA_Y][pointA_X].UMLclass.composistion;
+		for (int y = 0; y < classes.length; y++) {
+			for (int x = 0; x < classes[y].length; x++) {
+				String id = classes[y][x].getName();
+				if (comps.contains(id)) {
+					System.out.println("Arrow from : " + classes[pointA_Y][pointA_X].getName() + " -> " + id);
+					drawArrow(cx, pointA_X, pointA_Y, x, y);
 				}
 			}
-
 		}
 
 	}
