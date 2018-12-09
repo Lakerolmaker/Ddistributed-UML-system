@@ -196,13 +196,13 @@ public class NODE_Visualizer extends Application {
 	private double Y;
 	private double targetX;
 	private double targetY;
-	
 	private void drawArrow(GraphicsContext cx, int pointA_X, int pointA_Y, int pointB_X, int pointB_Y) {
 
 		DrawableCLass classA = classes[pointA_Y][pointA_X];
 		DrawableCLass classB = classes[pointB_Y][pointB_X];
 		
-		increaseColor();
+		increaseColor(200);
+		
 		Color arrow_color = this.getcolor();
 
 		cx.setStroke(arrow_color);
@@ -404,26 +404,55 @@ public class NODE_Visualizer extends Application {
 		return file;
 	}
 
-	private float hue = 0.0f; //hue
-	private float saturation = 1.0f; //saturation
-	private float brightness = 1.0f; //brightness
+	private int state = 0;
+	private int a = 255;
+	private int r = 255;
+	private int g = 0;
+	private int b = 0;
 	private Color getcolor() {
-		int rgb =  java.awt.Color.HSBtoRGB(hue, saturation, brightness);
-		int red = (rgb>>16)&0xFF;
-		int green = (rgb>>8)&0xFF;
-		int blue = rgb&0xFF;
+		if(state == 0){
+		    g++;
+		    if(g == 255)
+		        state = 1;
+		}
+		if(state == 1){
+		    r--;
+		    if(r == 0)
+		        state = 2;
+		}
+		if(state == 2){
+		    b++;
+		    if(b == 255)
+		        state = 3;
+		}
+		if(state == 3){
+		    g--;
+		    if(g == 0)
+		        state = 4;
+		}
+		if(state == 4){
+		    r++;
+		    if(r == 255)
+		        state = 5;
+		}
+		if(state == 5){
+		    b--;
+		    if(b == 0)
+		        state = 0;
+		}
+		int hex = (a << 24) + (r << 16) + (g << 8) + (b);
 		
-		javafx.scene.paint.Color fxColor = javafx.scene.paint.Color.rgb(red, green, blue, 1);
+		javafx.scene.paint.Color fxColor = javafx.scene.paint.Color.rgb(r, g, b, 1);
 		return fxColor;
 	}
 	
-	private float increase = 0.01f;
-	public void increaseColor() {
-		if((hue + increase) < 1.0f)
-			hue += 0.01f;
-		else
-			hue = 0.0f;
+	public void increaseColor(int amount) {
+		for (int i = 0; i < amount; i++) {
+			getcolor();
+		}
 	}
+	
+	
 	
 	
 	
