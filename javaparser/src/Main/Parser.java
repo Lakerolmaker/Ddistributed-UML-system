@@ -16,10 +16,13 @@ import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 import com.github.javaparser.ast.body.ConstructorDeclaration;
 import com.github.javaparser.ast.body.FieldDeclaration;
 import com.github.javaparser.ast.body.MethodDeclaration;
+import com.github.javaparser.ast.body.Parameter;
 import com.github.javaparser.ast.body.TypeDeclaration;
 import com.github.javaparser.ast.type.ClassOrInterfaceType;
 
+import beans.Edge;
 import beans.EdgeType;
+import beans.Node;
 import beans.PackageStructure;
 
 /**
@@ -216,8 +219,8 @@ public class Parser {
 	 *            typeDeclaration that needs to be processed.
 	 */
 	private void createAssociationEdgeForConstructor(ClassOrInterfaceDeclaration typeDeclaration) {
-		Node node = packageStructure.getNodeByName(typeDeclaration.getName());
-		List<BodyDeclaration> methods = typeDeclaration.getMembers();
+		Node node = packageStructure.getNodeByName(typeDeclaration.getNameAsString());
+		List<BodyDeclaration<?>> methods = typeDeclaration.getMembers();
 		for (BodyDeclaration bodyDeclaration : methods) {
 			ConstructorDeclaration methodDeclaration = null;
 			if (bodyDeclaration instanceof ConstructorDeclaration) {
@@ -229,7 +232,7 @@ public class Parser {
 						if (isReferenceType(parameter.getType())) {
 							Node refNode = packageStructure.getNodeByName(parameter.getType().toString());
 							if (!typeDeclaration.isInterface() && refNode.isInterface()) {
-								if (packageStructure.getEdge(typeDeclaration.getName(), refNode.getTypeName(),
+								if (packageStructure.getEdge(typeDeclaration.getNameAsString(), refNode.getTypeName(),
 										EdgeType.ASSOCIATION) == null) {
 									packageStructure.getEdges().add(new Edge(node, refNode, EdgeType.ASSOCIATION));
 								}

@@ -1,13 +1,12 @@
 package MainPackage;
 
-import java.awt.geom.Rectangle2D;
 import java.io.File;
 import java.util.ArrayList;
 
 import javax.imageio.ImageIO;
+
 import com.google.gson.Gson;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
+
 import FileClasses.UMLClass;
 import FileClasses.UMLPackage;
 import TCP.RunnableArg;
@@ -16,10 +15,11 @@ import TCP.TCP_data;
 import TCP.ZIP;
 import javafx.application.Application;
 import javafx.embed.swing.SwingFXUtils;
-import javafx.stage.Stage;
-import javafx.scene.canvas.*;
+import javafx.scene.canvas.Canvas;
+import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.image.WritableImage;
 import javafx.scene.paint.Color;
+import javafx.stage.Stage;
 
 public class NODE_Visualizer extends Application {
 

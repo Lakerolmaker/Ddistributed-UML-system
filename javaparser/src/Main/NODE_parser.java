@@ -1,7 +1,9 @@
 package Main;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -53,13 +55,7 @@ public class NODE_parser {
 
 				File unzipedFile = zip.uncompress(recivedFile);
 
-				UMLPackage project = null;
-				try {
-					project = Parse(unzipedFile);
-				} catch (FileNotFoundException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
+				UMLPackage project = Parse(unzipedFile);
 
 				Gson jsonParser = new Gson();
 				String project_json = jsonParser.toJson(project);
@@ -85,7 +81,7 @@ public class NODE_parser {
 
 	}
 
-	public static UMLPackage Parse(File file) throws FileNotFoundException {
+	public static UMLPackage Parse(File file) {
 
 		UMLPackage UMLpackage = new UMLPackage();
 		UMLpackage.name = file.getName();
@@ -102,11 +98,23 @@ public class NODE_parser {
 			} else if ((newFile.isFile() && (!newFile.isHidden()) && (getFileType(newFile).equals(".java")))) {
 				UMLClass newClass = parseFile(newFile);
 				UMLpackage.classes.add(newClass);
-
 			}
 		}
-		createEdges(file, UMLpackage);
+		for (File newFile : files) {
+			if ((newFile.isFile() && (!newFile.isHidden()) && (getFileType(newFile).equals(".java")))) {
+				try {
+					createEdges(newFile, UMLpackage);
+				} catch (Exception e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+		}
 
+		for (Relationship relationship : UMLpackage.getRelationships()) {
+			System.out.println(relationship.getSource().getName() + " ---------------- "
+					+ relationship.getDestination().getName());
+		}
 		return UMLpackage;
 
 	}
@@ -286,20 +294,20 @@ public class NODE_parser {
 
 	}
 
-	private static void createEdges(File file, UMLPackage umlPackage) throws FileNotFoundException {
-		CompilationUnit cu = JavaParser.parse(file);
+	private static void createEdges(File file, UMLPackage umlPackage) throws Exception {
+		CompilationUnit cu = getCompilationUnit(file);
 		List<TypeDeclaration<?>> td = cu.getTypes();
-		for (TypeDeclaration typeDeclaration : td) {
+		for (TypeDeclaration<?> typeDeclaration : td) {
 			createAssociationEdges((ClassOrInterfaceDeclaration) typeDeclaration, umlPackage);
 		}
 	}
 
 	private static void createAssociationEdges(ClassOrInterfaceDeclaration typeDeclaration, UMLPackage umlPackage) {
-		UMLClass umlClass = umlPackage.getClassByName(typeDeclaration.getName().toString());
+		UMLClass umlClass = umlPackage.getClassByName(typeDeclaration.getNameAsString());
 		List<BodyDeclaration<?>> methods = typeDeclaration.getMembers();
 		// List<MethodDeclaration> removeMethods = new
 		// ArrayList<MethodDeclaration>(0);
-		for (BodyDeclaration bodyDeclaration : methods) {
+		for (BodyDeclaration<?> bodyDeclaration : methods) {
 			MethodDeclaration methodDeclaration = null;
 			if (bodyDeclaration instanceof MethodDeclaration) {
 				methodDeclaration = (MethodDeclaration) bodyDeclaration;
@@ -312,8 +320,8 @@ public class NODE_parser {
 					for (Parameter parameter : parameters) {
 						if (isReferenceType(parameter.getType())) {
 							UMLClass refClass = umlPackage.getClassByName(parameter.getType().toString());
-							if (!typeDeclaration.isInterface() && refClass.isInterface()) {
-								if (umlPackage.getRelationship(typeDeclaration.getName().toString(), refClass.getName(),
+							if (refClass != null) {
+								if (umlPackage.getRelationship(typeDeclaration.getNameAsString(), refClass.getName(),
 										RelaType.ASSOCIATION) == null) {
 									umlPackage.getRelationships()
 											.add(new Relationship(umlClass, refClass, RelaType.ASSOCIATION));
@@ -325,6 +333,29 @@ public class NODE_parser {
 				}
 			}
 		}
+	}
+
+	private static CompilationUnit getCompilationUnit(File file) {
+		FileInputStream in = null;
+		try {
+			in = new FileInputStream(file);
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		}
+
+		CompilationUnit cu = null;
+		try {
+			cu = JavaParser.parse(in);
+		} catch (Exception e) {
+			e.printStackTrace();
+		} finally {
+			try {
+				in.close();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+		return cu;
 	}
 
 	private static boolean isReferenceType(Type type) {
