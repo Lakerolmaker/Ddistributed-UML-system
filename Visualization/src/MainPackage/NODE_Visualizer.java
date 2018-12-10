@@ -29,12 +29,14 @@ public class NODE_Visualizer extends Application {
 	StandardValues standard = new StandardValues();
 	public static TCP tcp = new TCP();
 	ZIP zip = new ZIP();
+	public double offsetX = 0;
+	public double offsetY = 0;
 
 	public static String[] systemArgs;
 
 	public static void main(String[] args) throws Exception {
 		systemArgs = args;
-		
+
 		tcp.server.initializeServer();
 		tcp.server.start(new RunnableArg<String>() {
 
@@ -72,15 +74,15 @@ public class NODE_Visualizer extends Application {
 		launch(systemArgs);
 	}
 
-	@Override
+	double Canvas_height;
+	double Canvas_width;
+
 	public void start(Stage primaryStage) throws Exception {
 
-		
-		
 		creatElements();
 
-		double Canvas_height = getCanvasHeight();
-		double Canvas_width = getCanvasWidth();
+		Canvas_height = getCanvasHeight();
+		Canvas_width = getCanvasWidth();
 
 		if (Canvas_height > Canvas_width) {
 			Canvas_width = Canvas_height;
@@ -88,25 +90,75 @@ public class NODE_Visualizer extends Application {
 			Canvas_height = Canvas_width;
 		}
 
+		File uml_picture;
+		if (Canvas_height > standard.normalredering_limit) {
+			uml_picture = sequentialRendering();
+		} else {
+			uml_picture = normalRender();
+		}
+
+		System.out.println("Visualizing comeplete");
+		/*
+		 * tcp.client.connectTNetwork("client"); tcp.client.sendFile(uml_picture);
+		 * 
+		 * System.out.println("Picture sent to clients");
+		 * 
+		 * uml_picture.delete(); System.out.println("Cleanup comeplete");
+		 */
+	}
+
+	public File normalRender() {
+
 		Canvas canvas = new Canvas();
 		canvas.setHeight(Canvas_height);
 		canvas.setWidth(Canvas_width);
-
 		GraphicsContext cx = canvas.getGraphicsContext2D();
 
 		drawElemements(cx);
 
-		File uml_picture = saveToImage(canvas);
+		return saveToImage(canvas, project_name);
 
-		System.out.println("Visualizing comeplete");
+	}
 
-		tcp.client.connectTNetwork("client");
-		tcp.client.sendFile(uml_picture);
+	public File sequentialRendering() {
 
-		System.out.println("Picture sent to clients");
+		double horisisontal = Canvas_height / standard.normalredering_limit;
+		double vertical = Canvas_width / standard.normalredering_limit;
+		
+		int picture_number = 0;
+		
+		for (double i = 0; i < vertical; i++) {
+			for (double j = 0; j < horisisontal; j++) {
 
-		uml_picture.delete();
-		System.out.println("Cleanup comeplete");
+				Canvas canvas = new Canvas();
+				canvas.setHeight(standard.normalredering_limit);
+				canvas.setWidth(standard.normalredering_limit);
+
+				System.out.println("offset_X : " + this.offsetX);
+				System.out.println("offset_Y : " + this.offsetY);
+				GraphicsContext cx = canvas.getGraphicsContext2D();
+
+				creatElements();
+				
+				drawElemements(cx);
+
+				saveToImage(canvas, project_name + "(" + picture_number + ")");
+
+				System.out.println("Created Image: (" + picture_number + ")");
+
+				// : Amount of pictures
+				picture_number++;
+				
+				this.offsetX -= standard.normalredering_limit;
+				resetColor();
+			
+			}
+			this.offsetX = 0;
+			this.offsetY -= standard.normalredering_limit;
+
+		}
+
+		return null;
 	}
 
 	public static ArrayList<UMLClass> getClasses(UMLPackage inputPackage) {
@@ -166,12 +218,12 @@ public class NODE_Visualizer extends Application {
 				try {
 					classes[y][x].draw(cx);
 				} catch (Exception e) {
-					System.err.println("Could not class Arrow for :" + e.getMessage());
+					//System.err.println("Could not class Arrow for :" + e.getMessage());
 				}
 				try {
 					drawArrows(cx, x, y);
 				} catch (Exception e) {
-					System.err.println("Could not draw Arrow for :" + e.getMessage());
+					//System.err.println("Could not draw Arrow for :" + e.getMessage());
 				}
 			}
 		}
@@ -184,7 +236,7 @@ public class NODE_Visualizer extends Application {
 			for (int x = 0; x < classes[y].length; x++) {
 				String id = classes[y][x].getName();
 				if (comps.contains(id)) {
-					System.out.println("Arrow from : " + classes[pointA_Y][pointA_X].getName() + " -> " + id);
+					//System.out.println("Arrow from : " + classes[pointA_Y][pointA_X].getName() + " -> " + id);
 					drawArrow(cx, pointA_X, pointA_Y, x, y);
 				}
 			}
@@ -196,19 +248,19 @@ public class NODE_Visualizer extends Application {
 	private double Y;
 	private double targetX;
 	private double targetY;
+
 	private void drawArrow(GraphicsContext cx, int pointA_X, int pointA_Y, int pointB_X, int pointB_Y) {
 
 		DrawableCLass classA = classes[pointA_Y][pointA_X];
 		DrawableCLass classB = classes[pointB_Y][pointB_X];
-		
+
 		increaseColor(200);
-		
+
 		Color arrow_color = this.getcolor();
 
 		cx.setStroke(arrow_color);
 		cx.setLineWidth(standard.arrowWidth);
 
-		
 		// check if it above or on the same column
 		if (pointB_Y <= pointA_Y) {
 
@@ -338,8 +390,16 @@ public class NODE_Visualizer extends Application {
 
 	public DrawableCLass createClass(int y, int x, UMLClass umlClass) {
 
-		double ClassX = getpreviousX(x);
-		double ClassY = getpreviousY(y);
+		double ClassX = 0;
+		double ClassY = 0;
+		
+		if(x == 0 && y == 0) {
+			ClassX = this.offsetX;
+			ClassY = this.offsetY;
+		}else{
+			 ClassX = getpreviousX(x);
+			 ClassY = getpreviousY(y);
+		}
 
 		DrawableCLass newClass = new DrawableCLass(ClassX, ClassY, umlClass);
 
@@ -349,8 +409,8 @@ public class NODE_Visualizer extends Application {
 
 	public double getpreviousY(int lineY) {
 
-		double maxY = 0;
-
+		double maxY =this.offsetY;
+		
 		for (int x = 0; x < classes[lineY].length; x++) {
 			try {
 				double curY = classes[lineY - 1][x].getY() + classes[lineY - 1][x].getHeight();
@@ -367,7 +427,7 @@ public class NODE_Visualizer extends Application {
 
 	public double getpreviousX(int lineX) {
 
-		double maxX = 0;
+		double maxX = this.offsetX;
 
 		for (int y = 0; y < classes[lineX].length; y++) {
 			try {
@@ -384,7 +444,7 @@ public class NODE_Visualizer extends Application {
 
 	}
 
-	public File saveToImage(Canvas canvas) {
+	public File saveToImage(Canvas canvas, String picture_name) {
 
 		int width = (int) canvas.getHeight();
 		int height = (int) canvas.getWidth();
@@ -393,7 +453,7 @@ public class NODE_Visualizer extends Application {
 
 		canvas.snapshot(null, wim);
 
-		String imagename = project_name + ".png";
+		String imagename = "pictures/" + picture_name + ".png";
 
 		File file = new File(imagename);
 
@@ -409,52 +469,56 @@ public class NODE_Visualizer extends Application {
 	private int r = 255;
 	private int g = 0;
 	private int b = 0;
+
 	private Color getcolor() {
-		if(state == 0){
-		    g++;
-		    if(g == 255)
-		        state = 1;
+		if (state == 0) {
+			g++;
+			if (g == 255)
+				state = 1;
 		}
-		if(state == 1){
-		    r--;
-		    if(r == 0)
-		        state = 2;
+		if (state == 1) {
+			r--;
+			if (r == 0)
+				state = 2;
 		}
-		if(state == 2){
-		    b++;
-		    if(b == 255)
-		        state = 3;
+		if (state == 2) {
+			b++;
+			if (b == 255)
+				state = 3;
 		}
-		if(state == 3){
-		    g--;
-		    if(g == 0)
-		        state = 4;
+		if (state == 3) {
+			g--;
+			if (g == 0)
+				state = 4;
 		}
-		if(state == 4){
-		    r++;
-		    if(r == 255)
-		        state = 5;
+		if (state == 4) {
+			r++;
+			if (r == 255)
+				state = 5;
 		}
-		if(state == 5){
-		    b--;
-		    if(b == 0)
-		        state = 0;
+		if (state == 5) {
+			b--;
+			if (b == 0)
+				state = 0;
 		}
 		int hex = (a << 24) + (r << 16) + (g << 8) + (b);
-		
+
 		javafx.scene.paint.Color fxColor = javafx.scene.paint.Color.rgb(r, g, b, 1);
 		return fxColor;
 	}
-	
+
 	public void increaseColor(int amount) {
 		for (int i = 0; i < amount; i++) {
 			getcolor();
 		}
 	}
 	
-	
-	
-	
-	
-	
+	public void resetColor() {
+		state = 0;
+		a = 255;
+		r = 255;
+		g = 0;
+		b = 0;
+	}
+
 }

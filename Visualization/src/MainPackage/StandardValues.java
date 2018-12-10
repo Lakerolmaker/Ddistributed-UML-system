@@ -13,9 +13,14 @@ public class StandardValues {
 	double paddingX = 50;
 	double paddingY = 50;
 	
+	//: limit of a single image being rendered
+	public static double normalredering_limit = 1000;
+	
+	
 	//: Padding between classes,  both X and Y
 	public static double padding = 100;
 	
+	//: Width of the line connecting classes
 	public static double arrowWidth = 5;
 
 	//: Padding of the canvas and the edge of the canvas
