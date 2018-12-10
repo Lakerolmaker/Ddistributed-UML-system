@@ -12,11 +12,13 @@ import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.NodeList;
 import com.github.javaparser.ast.body.BodyDeclaration;
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
+import com.github.javaparser.ast.body.ConstructorDeclaration;
 import com.github.javaparser.ast.body.MethodDeclaration;
 import com.github.javaparser.ast.body.Parameter;
 import com.github.javaparser.ast.body.TypeDeclaration;
 import com.github.javaparser.ast.body.VariableDeclarator;
 import com.github.javaparser.ast.expr.VariableDeclarationExpr;
+import com.github.javaparser.ast.type.ClassOrInterfaceType;
 import com.github.javaparser.ast.type.PrimitiveType;
 import com.github.javaparser.ast.type.ReferenceType;
 import com.github.javaparser.ast.type.Type;
@@ -112,8 +114,18 @@ public class NODE_parser {
 		}
 
 		for (Relationship relationship : UMLpackage.getRelationships()) {
-			System.out.println(relationship.getSource().getName() + " ---------------- "
-					+ relationship.getDestination().getName());
+			if (relationship.getType() != null) {
+				if (relationship.getType() == RelaType.ASSOCIATION) {
+					System.out.println(relationship.getSource().getName() + " ASSOCIATES WITH "
+							+ relationship.getDestination().getName());
+				} else if (relationship.getType() == RelaType.EXTENDS) {
+					System.out.println(
+							relationship.getSource().getName() + " EXTENDS " + relationship.getDestination().getName());
+				} else if (relationship.getType() == RelaType.IMPLEMENTS) {
+					System.out.println(relationship.getSource().getName() + " IMPLEMENTS "
+							+ relationship.getDestination().getName());
+				}
+			}
 		}
 		return UMLpackage;
 
@@ -299,10 +311,12 @@ public class NODE_parser {
 		List<TypeDeclaration<?>> td = cu.getTypes();
 		for (TypeDeclaration<?> typeDeclaration : td) {
 			createAssociationEdges((ClassOrInterfaceDeclaration) typeDeclaration, umlPackage);
+			createExtendsImplementsEdges((ClassOrInterfaceDeclaration) typeDeclaration, umlPackage);
 		}
 	}
 
 	private static void createAssociationEdges(ClassOrInterfaceDeclaration typeDeclaration, UMLPackage umlPackage) {
+		createAssociationEdgeForConstructor(typeDeclaration, umlPackage);
 		UMLClass umlClass = umlPackage.getClassByName(typeDeclaration.getNameAsString());
 		List<BodyDeclaration<?>> methods = typeDeclaration.getMembers();
 		// List<MethodDeclaration> removeMethods = new
@@ -312,8 +326,9 @@ public class NODE_parser {
 			if (bodyDeclaration instanceof MethodDeclaration) {
 				methodDeclaration = (MethodDeclaration) bodyDeclaration;
 				if (methodDeclaration.getName().equals("main")) {
-					umlPackage.getRelationships().add(
-							new Relationship(umlClass, umlPackage.getClassByName("Component"), RelaType.ASSOCIATION));
+					Relationship relationship = new Relationship(umlClass, umlPackage.getClassByName("Component"),
+							RelaType.ASSOCIATION);
+					umlPackage.getRelationships().add(relationship);
 				}
 				List<Parameter> parameters = methodDeclaration.getParameters();
 				if (parameters != null) {
@@ -323,13 +338,72 @@ public class NODE_parser {
 							if (refClass != null) {
 								if (umlPackage.getRelationship(typeDeclaration.getNameAsString(), refClass.getName(),
 										RelaType.ASSOCIATION) == null) {
-									umlPackage.getRelationships()
-											.add(new Relationship(umlClass, refClass, RelaType.ASSOCIATION));
+									Relationship relationship = new Relationship(umlClass, refClass,
+											RelaType.ASSOCIATION);
+									umlPackage.getRelationships().add(relationship);
 								}
 								// removeMethods.add(methodDeclaration);
 							}
 						}
 					}
+				}
+			}
+		}
+	}
+
+	private static void createAssociationEdgeForConstructor(ClassOrInterfaceDeclaration typeDeclaration,
+			UMLPackage umlPackage) {
+		UMLClass umlClass = umlPackage.getClassByName(typeDeclaration.getNameAsString());
+		List<BodyDeclaration<?>> methods = typeDeclaration.getMembers();
+		for (BodyDeclaration bodyDeclaration : methods) {
+			ConstructorDeclaration methodDeclaration = null;
+			if (bodyDeclaration instanceof ConstructorDeclaration) {
+				methodDeclaration = (ConstructorDeclaration) bodyDeclaration;
+
+				List<Parameter> parameters = methodDeclaration.getParameters();
+				if (parameters != null) {
+					for (Parameter parameter : parameters) {
+						if (isReferenceType(parameter.getType())) {
+							UMLClass refClass = umlPackage.getClassByName(parameter.getType().toString());
+							if (refClass != null) {
+
+								if (!typeDeclaration.isInterface() && refClass.isInterface()) {
+									if (umlPackage.getRelationship(typeDeclaration.getNameAsString(),
+											refClass.getName(), RelaType.ASSOCIATION) == null) {
+										Relationship relationship = new Relationship(umlClass, refClass,
+												RelaType.ASSOCIATION);
+										umlPackage.getRelationships().add(relationship);
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+
+	private static void createExtendsImplementsEdges(ClassOrInterfaceDeclaration typeDeclaration,
+			UMLPackage umlPackage) {
+		List<ClassOrInterfaceType> extendsList = typeDeclaration.getExtendedTypes();
+		if (extendsList != null) {
+			for (ClassOrInterfaceType classOrInterfaceType : extendsList) {
+				UMLClass source = umlPackage.getClassByName(typeDeclaration.getNameAsString());
+				UMLClass destination = umlPackage.getClassByName(classOrInterfaceType.getNameAsString());
+				if (source != null && destination != null) {
+					Relationship relationship = new Relationship(source, destination, RelaType.EXTENDS);
+					umlPackage.getRelationships().add(relationship);
+				}
+			}
+		}
+		List<ClassOrInterfaceType> implementsList = typeDeclaration.getImplementedTypes();
+		if (implementsList != null) {
+			for (ClassOrInterfaceType classOrInterfaceType : implementsList) {
+				UMLClass source = umlPackage.getClassByName(typeDeclaration.getNameAsString());
+				UMLClass destination = umlPackage.getClassByName(classOrInterfaceType.getNameAsString());
+				if (source != null && destination != null) {
+					Relationship relationship = new Relationship(source, destination, RelaType.IMPLEMENTS);
+					umlPackage.getRelationships().add(relationship);
 				}
 			}
 		}

@@ -74,4 +74,5 @@ public class UMLPackage {
 	public ArrayList<Relationship> getRelationships() {
 		return relationships;
 	}
+
 }

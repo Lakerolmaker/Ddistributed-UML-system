@@ -1,21 +1,19 @@
 package application;
-	
+
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
-import javafx.stage.Stage;
 import javafx.scene.Scene;
 import javafx.scene.layout.AnchorPane;
-
+import javafx.stage.Stage;
 
 public class NODE_client extends Application {
-	
-	public static  Stage myStage;
-	
+
+	public static Stage myStage;
+
 	public static void main(String[] args) {
 		launch(args);
 	}
-		
-	
+
 	@Override
 	public void start(Stage primaryStage) {
 		myStage = primaryStage;
@@ -26,14 +24,15 @@ public class NODE_client extends Application {
 			primaryStage.setTitle("Java to UML");
 			primaryStage.setScene(scene);
 			primaryStage.show();
-		} catch(Exception e) {
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}
-	
+
 	private MainController mc;
-    public void setMC(MainController mc) {
-    	this.mc = mc;
-    }
-	
+
+	public void setMC(MainController mc) {
+		this.mc = mc;
+	}
+
 }
