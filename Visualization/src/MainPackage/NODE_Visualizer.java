@@ -169,7 +169,7 @@ public class NODE_Visualizer extends Application {
 
 		}
 
-		System.out.println("Merging Images");
+		System.out.println("Merging " + picture_number + " Images");
 		BufferedImage finalIMG = null;
 		for (int y = 0; y < vertical; y++) {
 			BufferedImage rowIMG = null;
