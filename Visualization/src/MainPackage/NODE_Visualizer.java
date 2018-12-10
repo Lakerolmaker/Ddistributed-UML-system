@@ -1,7 +1,9 @@
 package MainPackage;
 
 import java.awt.geom.Rectangle2D;
+import java.awt.image.BufferedImage;
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 
 import javax.imageio.ImageIO;
@@ -92,8 +94,10 @@ public class NODE_Visualizer extends Application {
 
 		File uml_picture;
 		if (Canvas_height > standard.normalredering_limit) {
+			System.out.println("Canvas size exeeded limit of " +  standard.normalredering_limit + "px. Seqentual redering turned on");
 			uml_picture = sequentialRendering();
 		} else {
+			System.out.println("Normal rendering : on");
 			uml_picture = normalRender();
 		}
 
@@ -120,44 +124,72 @@ public class NODE_Visualizer extends Application {
 
 	}
 
-	public File sequentialRendering() {
+	public File[][] pictures;
+	public ImageMerger imagemerger = new ImageMerger();
 
-		double horisisontal = Canvas_height / standard.normalredering_limit;
-		double vertical = Canvas_width / standard.normalredering_limit;
-		
+	public File sequentialRendering() throws IOException {
+
+		int horisisontal = (int) Math.ceil(Canvas_height / standard.normalredering_limit);
+		int vertical = (int) Math.ceil(Canvas_width / standard.normalredering_limit);
+
+		pictures = new File[vertical][vertical];
+
 		int picture_number = 0;
-		
-		for (double i = 0; i < vertical; i++) {
-			for (double j = 0; j < horisisontal; j++) {
+
+		for (int y = 0; y < vertical; y++) {
+			for (int x = 0; x < horisisontal; x++) {
 
 				Canvas canvas = new Canvas();
 				canvas.setHeight(standard.normalredering_limit);
 				canvas.setWidth(standard.normalredering_limit);
 
-				System.out.println("offset_X : " + this.offsetX);
-				System.out.println("offset_Y : " + this.offsetY);
+				// System.out.println("offset_X : " + this.offsetX);
+				// System.out.println("offset_Y : " + this.offsetY);
 				GraphicsContext cx = canvas.getGraphicsContext2D();
 
 				creatElements();
-				
+
 				drawElemements(cx);
 
-				saveToImage(canvas, project_name + "(" + picture_number + ")");
+				String image_name = project_name + "(" + picture_number + ")";
 
-				System.out.println("Created Image: (" + picture_number + ")");
+				pictures[y][x] = saveToImage(canvas, image_name);
+
+				//System.out.println("Created Image: (" + picture_number + ")");
 
 				// : Amount of pictures
 				picture_number++;
-				
+
 				this.offsetX -= standard.normalredering_limit;
 				resetColor();
-			
+
 			}
 			this.offsetX = 0;
 			this.offsetY -= standard.normalredering_limit;
 
 		}
 
+		System.out.println("Merging Images");
+		BufferedImage finalIMG = null;
+		for (int y = 0; y < vertical; y++) {
+			BufferedImage rowIMG = null;
+			for (int x = 0; x < horisisontal; x++) {
+				BufferedImage i1 = ImageIO.read(pictures[y][x]);
+				if (rowIMG != null)
+					rowIMG = imagemerger.joinHorizontal(rowIMG, i1, 1);
+				else
+					rowIMG = i1;
+				pictures[y][x].delete();
+			}
+			if (finalIMG != null)
+				finalIMG = imagemerger.joinVertical(finalIMG, rowIMG, 1);
+			else
+				finalIMG = rowIMG;
+		}
+
+		System.out.println("Done Mergin images");
+		System.out.println("Writing to file");
+		ImageIO.write(finalIMG, "png", new File(project_name + ".png"));
 		return null;
 	}
 
@@ -218,12 +250,12 @@ public class NODE_Visualizer extends Application {
 				try {
 					classes[y][x].draw(cx);
 				} catch (Exception e) {
-					//System.err.println("Could not class Arrow for :" + e.getMessage());
+					// System.err.println("Could not class Arrow for :" + e.getMessage());
 				}
 				try {
 					drawArrows(cx, x, y);
 				} catch (Exception e) {
-					//System.err.println("Could not draw Arrow for :" + e.getMessage());
+					// System.err.println("Could not draw Arrow for :" + e.getMessage());
 				}
 			}
 		}
@@ -236,7 +268,8 @@ public class NODE_Visualizer extends Application {
 			for (int x = 0; x < classes[y].length; x++) {
 				String id = classes[y][x].getName();
 				if (comps.contains(id)) {
-					//System.out.println("Arrow from : " + classes[pointA_Y][pointA_X].getName() + " -> " + id);
+					// System.out.println("Arrow from : " + classes[pointA_Y][pointA_X].getName() +
+					// " -> " + id);
 					drawArrow(cx, pointA_X, pointA_Y, x, y);
 				}
 			}
@@ -392,13 +425,13 @@ public class NODE_Visualizer extends Application {
 
 		double ClassX = 0;
 		double ClassY = 0;
-		
-		if(x == 0 && y == 0) {
-			ClassX = this.offsetX;
-			ClassY = this.offsetY;
-		}else{
-			 ClassX = getpreviousX(x);
-			 ClassY = getpreviousY(y);
+
+		if (x == 0 && y == 0) {
+			ClassX = this.offsetX + standard.padding;
+			ClassY = this.offsetY + standard.padding;
+		} else {
+			ClassX = getpreviousX(x);
+			ClassY = getpreviousY(y);
 		}
 
 		DrawableCLass newClass = new DrawableCLass(ClassX, ClassY, umlClass);
@@ -409,8 +442,8 @@ public class NODE_Visualizer extends Application {
 
 	public double getpreviousY(int lineY) {
 
-		double maxY =this.offsetY;
-		
+		double maxY = this.offsetY;
+
 		for (int x = 0; x < classes[lineY].length; x++) {
 			try {
 				double curY = classes[lineY - 1][x].getY() + classes[lineY - 1][x].getHeight();
@@ -512,7 +545,7 @@ public class NODE_Visualizer extends Application {
 			getcolor();
 		}
 	}
-	
+
 	public void resetColor() {
 		state = 0;
 		a = 255;
