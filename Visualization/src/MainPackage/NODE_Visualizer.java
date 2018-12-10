@@ -2,7 +2,11 @@ package MainPackage;
 
 import java.awt.geom.Rectangle2D;
 import java.io.File;
+import java.lang.reflect.Array;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import javax.imageio.ImageIO;
 import com.google.gson.Gson;
@@ -34,7 +38,7 @@ public class NODE_Visualizer extends Application {
 
 	public static void main(String[] args) throws Exception {
 		systemArgs = args;
-		
+
 		tcp.server.initializeServer();
 		tcp.server.start(new RunnableArg<String>() {
 
@@ -75,8 +79,6 @@ public class NODE_Visualizer extends Application {
 	@Override
 	public void start(Stage primaryStage) throws Exception {
 
-		
-		
 		creatElements();
 
 		double Canvas_height = getCanvasHeight();
@@ -107,6 +109,8 @@ public class NODE_Visualizer extends Application {
 
 		uml_picture.delete();
 		System.out.println("Cleanup comeplete");
+		primaryStage.show();
+
 	}
 
 	public static ArrayList<UMLClass> getClasses(UMLPackage inputPackage) {
@@ -165,27 +169,30 @@ public class NODE_Visualizer extends Application {
 			for (int x = 0; x < classes[y].length; x++) {
 				try {
 					classes[y][x].draw(cx);
-				} catch (Exception e) {
-					System.err.println("Could not class Arrow for :" + e.getMessage());
-				}
-				try {
 					drawArrows(cx, x, y);
 				} catch (Exception e) {
-					System.err.println("Could not draw Arrow for :" + e.getMessage());
 				}
 			}
 		}
 	}
 
+	
 	private void drawArrows(GraphicsContext cx, int pointA_X, int pointA_Y) {
-
+		ArrayList num = new ArrayList();
 		ArrayList<String> comps = classes[pointA_Y][pointA_X].UMLclass.composistion;
 		for (int y = 0; y < classes.length; y++) {
 			for (int x = 0; x < classes[y].length; x++) {
 				String id = classes[y][x].getName();
 				if (comps.contains(id)) {
+				num.add(classes[pointA_Y][pointA_X].getName());
+				
+				
 					System.out.println("Arrow from : " + classes[pointA_Y][pointA_X].getName() + " -> " + id);
-					drawArrow(cx, pointA_X, pointA_Y, x, y);
+				int offsettimes = num.size();
+				int offset = 10;
+				for (int i=0; i<num.size(); i++) {
+					drawArrow(cx, pointA_X, pointA_Y, x, y, offset*i);
+				}
 				}
 			}
 		}
@@ -196,27 +203,24 @@ public class NODE_Visualizer extends Application {
 	private double Y;
 	private double targetX;
 	private double targetY;
-	private void drawArrow(GraphicsContext cx, int pointA_X, int pointA_Y, int pointB_X, int pointB_Y) {
 
+	private void drawArrow(GraphicsContext cx, int pointA_X, int pointA_Y, int pointB_X, int pointB_Y, int offset) {
+		
 		DrawableCLass classA = classes[pointA_Y][pointA_X];
 		DrawableCLass classB = classes[pointB_Y][pointB_X];
-		
-		increaseColor(200);
-		
-		Color arrow_color = this.getcolor();
-
-		cx.setStroke(arrow_color);
+		cx.setStroke(Color.PURPLE);
 		cx.setLineWidth(standard.arrowWidth);
+		System.out.println(offset);
 
-		
 		// check if it above or on the same column
+		
 		if (pointB_Y <= pointA_Y) {
 
 			X = classA.getX() + (classA.getWidth() / 2);
 			Y = classA.getY();
 
 			cx.beginPath();
-			cx.moveTo(X, Y);
+			cx.moveTo(X+offset, Y);
 
 			// : draw first line
 			Y -= (standard.padding / 2);
@@ -229,7 +233,7 @@ public class NODE_Visualizer extends Application {
 			Y = classA.getY() + classA.getHeight();
 
 			cx.beginPath();
-			cx.moveTo(X, Y);
+			cx.moveTo(X+offset, Y);
 
 			// : draw first line
 			Y += (standard.padding / 2);
@@ -237,7 +241,7 @@ public class NODE_Visualizer extends Application {
 			cx.stroke();
 
 		}
-
+		
 		// : sets the target X and Y
 		// : ( below or at the same level , connects to the above of the target)
 		if (pointA_Y <= pointB_Y) {
@@ -264,8 +268,8 @@ public class NODE_Visualizer extends Application {
 				cx.stroke();
 			}
 
-			travelHorizontaly(cx, pointA_X, pointB_X, classB);
-			travelVerticaly(cx, pointA_Y, pointB_Y, classB);
+			travelHorizontaly(cx, pointA_X, pointB_X, classB, offset);
+			travelVerticaly(cx, pointA_Y, pointB_Y, classB, offset);
 
 			finalConnection(cx);
 		}
@@ -282,28 +286,28 @@ public class NODE_Visualizer extends Application {
 		cx.stroke();
 	}
 
-	public void travelVerticaly(GraphicsContext cx, int pointA_Y, int pointB_Y, DrawableCLass elem) {
+	public void travelVerticaly(GraphicsContext cx, int pointA_Y, int pointB_Y, DrawableCLass elem, int offset) {
 
 		if (pointB_Y < pointA_Y) {
-			Y = elem.getbottomY() + (standard.padding / 2);
+			Y = elem.getbottomY() + (standard.padding / 2)+offset;
 			cx.lineTo(X, Y);
 			cx.stroke();
 		} else {
-			Y = elem.getY() - (standard.padding / 2);
+			Y = elem.getY() - (standard.padding / 2)+offset;
 			cx.lineTo(X, Y);
 			cx.stroke();
 		}
 
 	}
 
-	public void travelHorizontaly(GraphicsContext cx, int pointA_X, int pointB_X, DrawableCLass elem) {
+	public void travelHorizontaly(GraphicsContext cx, int pointA_X, int pointB_X, DrawableCLass elem, int offset) {
 
 		if (pointB_X > pointA_X) {
-			X = elem.getX() - (standard.padding / 2);
+			X = elem.getX() - (standard.padding / 2)+offset;
 			cx.lineTo(X, Y);
 			cx.stroke();
 		} else {
-			X = elem.getrightX() + (standard.padding / 2);
+			X = elem.getrightX() + (standard.padding / 2)+offset;
 			cx.lineTo(X, Y);
 			cx.stroke();
 		}
@@ -388,7 +392,7 @@ public class NODE_Visualizer extends Application {
 
 		int width = (int) canvas.getHeight();
 		int height = (int) canvas.getWidth();
-
+		
 		WritableImage wim = new WritableImage(width, height);
 
 		canvas.snapshot(null, wim);
@@ -404,57 +408,4 @@ public class NODE_Visualizer extends Application {
 		return file;
 	}
 
-	private int state = 0;
-	private int a = 255;
-	private int r = 255;
-	private int g = 0;
-	private int b = 0;
-	private Color getcolor() {
-		if(state == 0){
-		    g++;
-		    if(g == 255)
-		        state = 1;
-		}
-		if(state == 1){
-		    r--;
-		    if(r == 0)
-		        state = 2;
-		}
-		if(state == 2){
-		    b++;
-		    if(b == 255)
-		        state = 3;
-		}
-		if(state == 3){
-		    g--;
-		    if(g == 0)
-		        state = 4;
-		}
-		if(state == 4){
-		    r++;
-		    if(r == 255)
-		        state = 5;
-		}
-		if(state == 5){
-		    b--;
-		    if(b == 0)
-		        state = 0;
-		}
-		int hex = (a << 24) + (r << 16) + (g << 8) + (b);
-		
-		javafx.scene.paint.Color fxColor = javafx.scene.paint.Color.rgb(r, g, b, 1);
-		return fxColor;
-	}
-	
-	public void increaseColor(int amount) {
-		for (int i = 0; i < amount; i++) {
-			getcolor();
-		}
-	}
-	
-	
-	
-	
-	
-	
 }
