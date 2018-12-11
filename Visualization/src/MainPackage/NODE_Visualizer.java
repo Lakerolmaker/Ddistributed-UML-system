@@ -41,6 +41,7 @@ public class NODE_Visualizer extends Application {
 	public static String[] systemArgs;
 
 	public static void main(String[] args) throws Exception {
+		
 		systemArgs = args;
 
 		tcp.server.initializeServer();
@@ -108,13 +109,15 @@ public class NODE_Visualizer extends Application {
 		}
 
 		System.out.println("Visualizing comeplete");
-		/*
-		 * tcp.client.connectTNetwork("client"); tcp.client.sendFile(uml_picture);
-		 * 
-		 * System.out.println("Picture sent to clients");
-		 * 
-		 * uml_picture.delete(); System.out.println("Cleanup comeplete");
-		 */
+
+		tcp.client.connectTNetwork("client");
+		tcp.client.sendFile(uml_picture);
+
+		System.out.println("Picture sent to clients");
+
+		uml_picture.delete();
+		System.out.println("Cleanup comeplete");
+
 	}
 
 	public File normalRender() {
@@ -141,8 +144,9 @@ public class NODE_Visualizer extends Application {
 
 		pictures = new File[vertical][vertical];
 
+		int totallAmount = horisisontal * vertical;
 		int picture_number = 0;
-
+		
 		for (int y = 0; y < vertical; y++) {
 			for (int x = 0; x < horisisontal; x++) {
 
@@ -170,6 +174,9 @@ public class NODE_Visualizer extends Application {
 
 				this.offsetX -= standard.normalredering_limit;
 				resetColor();
+				
+				// : Prints the progress
+				System.out.println(getProcetage(picture_number , totallAmount)  + "%");
 
 			}
 			this.offsetX = 0;
@@ -197,8 +204,14 @@ public class NODE_Visualizer extends Application {
 
 		System.out.println("Done Mergin images");
 		System.out.println("Writing to file");
-		ImageIO.write(finalIMG, "png", new File(project_name + ".png"));
-		return null;
+		
+		File image_location = new File(project_name + ".png");
+		ImageIO.write(finalIMG, "png", image_location);
+		return image_location;
+	}
+	
+	public int getProcetage(int a , int b){
+		return (int)(a * 100.0f) / b;
 	}
 
 	public static ArrayList<UMLClass> getClasses(UMLPackage inputPackage) {
@@ -277,7 +290,7 @@ public class NODE_Visualizer extends Application {
 				}
 			}
 		}
-		
+
 	}
 
 	private double X;
@@ -296,8 +309,8 @@ public class NODE_Visualizer extends Application {
 
 				drawArrow(cx, (int) p1.getX(), (int) p1.getY(), (int) p2.getX(), (int) p2.getY());
 
-				System.out
-						.println("Arrow from : " + rel.getSource().getName() + " -> " + rel.getDestination().getName());
+				// System.out.println("Arrow from : " + rel.getSource().getName() + " -> " +
+				// rel.getDestination().getName());
 
 			} catch (Exception e) {
 				System.err.println("Could not draw Arrow : " + e.getMessage());

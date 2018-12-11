@@ -16,7 +16,6 @@ public class StandardValues {
 	//: limit of a single image being rendered
 	public static double normalredering_limit = 1000;
 	
-	
 	//: Padding between classes,  both X and Y
 	public static double padding = 100;
 	
