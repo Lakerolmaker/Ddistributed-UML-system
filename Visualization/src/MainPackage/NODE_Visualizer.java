@@ -1,5 +1,6 @@
 package MainPackage;
 
+import java.awt.Point;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.io.File;
@@ -10,6 +11,8 @@ import javax.imageio.ImageIO;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+
+import FileClasses.Relationship;
 import FileClasses.UMLClass;
 import FileClasses.UMLPackage;
 import TCP.RunnableArg;
@@ -27,6 +30,7 @@ public class NODE_Visualizer extends Application {
 
 	public static String project_name = "UMLFromJava";
 	public static ArrayList<UMLClass> umlClasses = new ArrayList<UMLClass>();
+	public static ArrayList<Relationship> rellationships = new ArrayList<Relationship>();
 	public static DrawableCLass[][] classes;
 	StandardValues standard = new StandardValues();
 	public static TCP tcp = new TCP();
@@ -58,6 +62,7 @@ public class NODE_Visualizer extends Application {
 					project_name = project.name;
 
 					umlClasses = getClasses(project);
+					rellationships = getRellationships(project);
 
 					System.out.println("Beginning visualizing");
 					Lanchprogram();
@@ -94,7 +99,8 @@ public class NODE_Visualizer extends Application {
 
 		File uml_picture;
 		if (Canvas_height > standard.normalredering_limit) {
-			System.out.println("Canvas size exeeded limit of " +  standard.normalredering_limit + "px. Seqentual redering turned on");
+			System.out.println("Canvas size exeeded limit of " + standard.normalredering_limit
+					+ "px. Seqentual redering turned on");
 			uml_picture = sequentialRendering();
 		} else {
 			System.out.println("Normal rendering : on");
@@ -119,6 +125,7 @@ public class NODE_Visualizer extends Application {
 		GraphicsContext cx = canvas.getGraphicsContext2D();
 
 		drawElemements(cx);
+		drawArrows(cx);
 
 		return saveToImage(canvas, project_name);
 
@@ -150,12 +157,13 @@ public class NODE_Visualizer extends Application {
 				creatElements();
 
 				drawElemements(cx);
+				drawArrows(cx);
 
 				String image_name = project_name + "(" + picture_number + ")";
 
 				pictures[y][x] = saveToImage(canvas, image_name);
 
-				//System.out.println("Created Image: (" + picture_number + ")");
+				// System.out.println("Created Image: (" + picture_number + ")");
 
 				// : Amount of pictures
 				picture_number++;
@@ -210,6 +218,21 @@ public class NODE_Visualizer extends Application {
 		return newPackage;
 	}
 
+	public static ArrayList<Relationship> getRellationships(UMLPackage inputPackage) {
+
+		ArrayList<Relationship> newPackage = new ArrayList<Relationship>();
+
+		newPackage.addAll(inputPackage.getRelationships());
+
+		if (!inputPackage.Packages.isEmpty()) {
+			for (int i = 0; i < inputPackage.Packages.size(); i++) {
+				newPackage.addAll(getRellationships(inputPackage.Packages.get(i)));
+			}
+		}
+
+		return newPackage;
+	}
+
 	public double getCanvasWidth() {
 		double maxWidth = 0;
 		for (int y = 0; y < classes.length; y++) {
@@ -252,35 +275,48 @@ public class NODE_Visualizer extends Application {
 				} catch (Exception e) {
 					// System.err.println("Could not class Arrow for :" + e.getMessage());
 				}
-				try {
-					drawArrows(cx, x, y);
-				} catch (Exception e) {
-					// System.err.println("Could not draw Arrow for :" + e.getMessage());
-				}
 			}
 		}
-	}
-
-	private void drawArrows(GraphicsContext cx, int pointA_X, int pointA_Y) {
-
-		ArrayList<String> comps = classes[pointA_Y][pointA_X].UMLclass.composistion;
-		for (int y = 0; y < classes.length; y++) {
-			for (int x = 0; x < classes[y].length; x++) {
-				String id = classes[y][x].getName();
-				if (comps.contains(id)) {
-					// System.out.println("Arrow from : " + classes[pointA_Y][pointA_X].getName() +
-					// " -> " + id);
-					drawArrow(cx, pointA_X, pointA_Y, x, y);
-				}
-			}
-		}
-
+		
 	}
 
 	private double X;
 	private double Y;
 	private double targetX;
 	private double targetY;
+
+	private void drawArrows(GraphicsContext cx) {
+
+		for (Relationship rel : rellationships) {
+
+			try {
+
+				Point p1 = getcordinate(rel.getSource());
+				Point p2 = getcordinate(rel.getDestination());
+
+				drawArrow(cx, (int) p1.getX(), (int) p1.getY(), (int) p2.getX(), (int) p2.getY());
+
+				System.out
+						.println("Arrow from : " + rel.getSource().getName() + " -> " + rel.getDestination().getName());
+
+			} catch (Exception e) {
+				System.err.println("Could not draw Arrow : " + e.getMessage());
+			}
+		}
+
+	}
+
+	private Point getcordinate(UMLClass umlClass) {
+
+		for (int y = 0; y < classes.length; y++) {
+			for (int x = 0; x < classes[y].length; x++) {
+				if (classes[y][x].getName().equals(umlClass.getName())) {
+					return new Point(x, y);
+				}
+			}
+		}
+		return null;
+	}
 
 	private void drawArrow(GraphicsContext cx, int pointA_X, int pointA_Y, int pointB_X, int pointB_Y) {
 
