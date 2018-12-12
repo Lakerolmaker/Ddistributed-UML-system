@@ -30,10 +30,5 @@ public class NODE_client extends Application {
 			e.printStackTrace();
 		}
 	}
-	
-	private MainController mc;
-    public void setMC(MainController mc) {
-    	this.mc = mc;
-    }
-	
+
 }

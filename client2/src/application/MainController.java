@@ -21,7 +21,6 @@ import javafx.fxml.Initializable;
 import javafx.geometry.Insets;
 import javafx.scene.control.Button;
 import javafx.scene.control.TextArea;
-import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
@@ -97,30 +96,6 @@ public class MainController implements Initializable {
 		}
 	}
 	
-	public void imageChooser1(ActionEvent event) {
-		Image image = new Image("/images/alemseged amoredolce-logo.png");
-		//Image image = new Image("/images/20180826_143026.jpg");
-		imagePane.setImage(image);
-		
-	}
-	public void imageChooser2(ActionEvent event) {
-		Image image = new Image("/images/gatys_results.png");
-		//Image image = new Image("/images/20180826_143026.jpg");
-		imagePane.setImage(image);
-		
-	}
-	public void imageChooser3(ActionEvent event) {
-		Image image = new Image("/images/alemseged-bouquets-prime-100-red-roses-64_1000.jpg");
-		//Image image = new Image("/images/20180826_143026.jpg");
-		imagePane.setImage(image);
-	}
-	public void imageChooser4(ActionEvent event) {
-		Image image = new Image("/images/alemseged.png");
-		//Image image = new Image("/images/20180826_143026.jpg");
-		imagePane.setImage(image);
-	}
-		
-
 	public void sendFile(String filePath) throws Exception {
 
 		File newFile = new File(filePath);

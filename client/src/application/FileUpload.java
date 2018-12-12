@@ -12,9 +12,7 @@ public class FileUpload {
 	public void selectFile() {
 		MainController mc = new MainController();
 		FileChooser fc = new FileChooser();
-		FileChooser.ExtensionFilter exFilter = new FileChooser.ExtensionFilter(" TEXT files", "*.fc.getExtensionFilters().add(exFilter)");
-	
-		
+		FileChooser.ExtensionFilter exFilter = new FileChooser.ExtensionFilter(" TEXT files", "*.fc.getExtensionFilters().add(exFilter)");	
 		try {
 			file = fc.showOpenDialog(null);
 		}catch (Exception e) {

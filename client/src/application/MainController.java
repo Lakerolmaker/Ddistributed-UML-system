@@ -4,14 +4,9 @@ import java.awt.Desktop;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
+import java.util.HashMap;
 import java.util.ResourceBundle;
-
-import javax.imageio.ImageIO;
-
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
-import com.sun.prism.Image;
-
+import javax.swing.JOptionPane;
 import TCP.RunnableArg;
 import TCP.TCP;
 import TCP.ZIP;
@@ -20,31 +15,59 @@ import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.geometry.Insets;
 import javafx.scene.control.Button;
+import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextArea;
+import javafx.scene.image.ImageView;
+import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.CornerRadii;
+import javafx.scene.layout.GridPane;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
+import javafx.scene.layout.Priority;
 import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
+import javafx.scene.text.TextAlignment;
 import javafx.stage.DirectoryChooser;
-import javafx.stage.FileChooser;
-import javafx.stage.FileChooser.ExtensionFilter;
 import ui.RingProgressIndicator;
 
 public class MainController implements Initializable {
 
+	public HashMap<String, File> files = new HashMap<String, File>();
+	
+	
 	TCP tcp = new TCP();
 	ZIP zip = new ZIP();
+	RingProgressIndicator progressbar;
+	File selectedFile = null;
 
 	@FXML
-	public Button selectFile;
-	@FXML
-	public TextArea textArea;
-	@FXML
-	public StackPane stackPane;
-	@FXML
-	public Pane linkPane;
+    private TextArea textArea;
+
+    @FXML
+    private StackPane stackPane;
+
+    @FXML
+    private Pane linkPane;
+    
+    @FXML
+    private AnchorPane scrollpane;
+    
+    @FXML
+    private ScrollPane scrollbar;
+
+    @FXML
+	private ImageView imagePane;
+    
+    @FXML
+    private Button btn1;
+
+    @FXML
+    private Button selectFile;
+    
+    GridPane gridpane = new GridPane();
+
 
 	// test the text area
 	public void addNumbers(ActionEvent event) {
@@ -54,41 +77,121 @@ public class MainController implements Initializable {
 	}
 
 	DirectoryChooser directoryChooser = new DirectoryChooser();
+
+	int index = 0;
+	public void addbutton() {
+		
+		Button newbtn = new Button();
+		
+		newbtn.setTextAlignment(TextAlignment.CENTER);
+		newbtn.setPadding(new Insets(2, 2, 2, 2));
+		
+		newbtn.setText("button");
+
+		gridpane.add(newbtn, 0 , index);
+
+		
+		index++;
+	}
+	
 	public void uploadFile() throws Exception {
 		File selectedDirectory = directoryChooser.showDialog(NODE_client.myStage);
 		if (selectedDirectory != null) {
-			sendFile(selectedDirectory.getAbsolutePath());
+			File file = new File(selectedDirectory.getAbsolutePath());
+			if (isVailidProject(file)) {
+				selectedFile = file;
+				addFileInfo(selectedFile);
+			} else {
+				selectedFile = null;
+				notValid();
+			}
+
 		}
 	}
 
-	public void sendFile(String filePath) throws Exception {
+	public void notValid() {
+		popup("Error", "Not a valid project");
+		textArea.setText("choose file");
+	}
 
-		File newFile = new File(filePath);
+	public boolean isVailidProject(File file) {
 
-		tcp.client.sendFile(newFile);
+		if (file.isDirectory())
+			return true;
+		else
+			return false;
+
+	}
+
+	public void popup(String title, String message) {
+
+		JOptionPane.showMessageDialog(null, message, title, JOptionPane.PLAIN_MESSAGE);
+
+	}
+
+	public void addFileInfo(File file) {
+
+		String fileText = "";
+		fileText += "Project size : " + file.getName() + "\n";
+		fileText += "File size    : " + getSizeEnding(file.getTotalSpace()) + "\n";
+		fileText += "Project ETA  : " + "???" + "\n";
+
+		textArea.setText(fileText);
+
+	}
+
+	public static String getSizeEnding(long size) {
+
+		if (size < 1024) {
+			return size + " Bytes";
+		} else if (size < 1048576) {
+			return size / 1024 + " Kilobytes";
+		} else if (size < 1073741824) {
+			return size / 1048576 + " Megabytes";
+		} else if (size > 1073741824) {
+			return size / 1073741824 + " Gigabytes";
+		}
+		return null;
+	}
+
+	public void sendFile() throws Exception {
+
+		tcp.client.sendFile(selectedFile);
 
 	}
 
 	@Override // it initialises
 	public void initialize(URL arg0, ResourceBundle arg1) {
+
+		scrollbar.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+		scrollbar.setVbarPolicy(ScrollPane.ScrollBarPolicy.ALWAYS);
+		
+		gridpane.setVgap(20);
+		gridpane.setLayoutX(44);
+		scrollpane.getChildren().add(gridpane);
+		
 		String colour = "abcdef";
 		linkPane.setBackground(
 				new Background(new BackgroundFill(Color.web("#" + colour), CornerRadii.EMPTY, Insets.EMPTY)));
-		RingProgressIndicator ringProgressIndicator = new RingProgressIndicator();
-		ringProgressIndicator.setRingWidth(30);
-		ringProgressIndicator.makeIndeterminate();
+		progressbar = new RingProgressIndicator();
+		progressbar.setRingWidth(30);
+		progressbar.makeIndeterminate();
 
-		stackPane.getChildren().add(ringProgressIndicator);
-
-		ProgressThread pt = new ProgressThread(ringProgressIndicator);
-		pt.start();
+		stackPane.getChildren().add(progressbar);
 
 		try {
-			initTCP();
+			// initTCP();
 		} catch (Exception e) {
 			System.err.println("Could not initialize the tcp : " + e.getMessage());
 		}
 
+	}
+
+	public void increase() {
+		int progress = progressbar.getProgress();
+		progress += 1;
+		
+		progressbar.setProgress(progress);
 	}
 
 	public void initTCP() throws Exception {

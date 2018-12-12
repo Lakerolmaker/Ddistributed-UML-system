@@ -1,23 +1,47 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.scene.effect.*?>
-<?import javafx.scene.control.*?>
-<?import java.lang.*?>
-<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.TextArea?>
+<?import javafx.scene.effect.DropShadow?>
+<?import javafx.scene.effect.Glow?>
+<?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.Pane?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.text.Font?>
 
-<AnchorPane prefHeight="477.0" prefWidth="527.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="application.MainController">
+<AnchorPane prefHeight="600.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/8.0.191" xmlns:fx="http://javafx.com/fxml/1" fx:controller="application.MainController">
    <children>
-      <Button fx:id="selectFile" layoutX="241.0" layoutY="438.0" mnemonicParsing="false" onAction="#uploadFile" text="select file" />
-      <TextArea fx:id="textArea" layoutX="107.0" layoutY="127.0" prefHeight="297.0" prefWidth="400.0" promptText="choose file">
+      <TextArea fx:id="textArea" layoutX="327.0" layoutY="127.0" prefHeight="369.0" prefWidth="265.0" promptText="choose file">
          <effect>
             <Glow />
-         </effect></TextArea>
-      <StackPane fx:id="stackPane" layoutX="203.0" layoutY="22.0" prefHeight="90.0" prefWidth="121.0" />
-      <Pane fx:id="linkPane" layoutX="23.0" layoutY="127.0" prefHeight="297.0" prefWidth="66.0">
+         </effect>
+         <font>
+            <Font size="20.0" />
+         </font></TextArea>
+      <StackPane fx:id="stackPane" layoutX="230.0" prefHeight="110.0" prefWidth="141.0" />
+      <Pane fx:id="linkPane" layoutX="6.0" layoutY="127.0" prefHeight="369.0" prefWidth="301.0">
          <effect>
             <DropShadow />
          </effect>
+         <children>
+            <ImageView fx:id="imagePane" fitHeight="178.0" fitWidth="162.0" layoutX="139.0" nodeOrientation="INHERIT" pickOnBounds="true" preserveRatio="true" />
+            <ScrollPane fx:id="scrollbar" prefHeight="369.0" prefWidth="154.0">
+              <content>
+                <AnchorPane fx:id="scrollpane" minHeight="0.0" minWidth="0.0" prefHeight="200.0" prefWidth="200.0" style="-fx-spacing: 10;" />
+              </content>
+            </ScrollPane>
+         </children>
       </Pane>
+      <Button fx:id="selectFile" layoutX="189.0" layoutY="526.0" mnemonicParsing="false" onAction="#uploadFile" prefHeight="45.0" prefWidth="104.0" text=" Select file">
+         <font>
+            <Font name="AR JULIAN" size="14.0" />
+         </font></Button>
+      <Button layoutX="301.0" layoutY="526.0" mnemonicParsing="false" onAction="#addbutton" prefHeight="45.0" prefWidth="90.0" text="Confirm">
+         <font>
+            <Font name="AR JULIAN" size="14.0" />
+         </font>
+      </Button>
    </children>
 </AnchorPane>
