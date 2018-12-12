@@ -11,7 +11,7 @@
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.text.Font?>
 
-<AnchorPane prefHeight="600.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/8.0.191" xmlns:fx="http://javafx.com/fxml/1" fx:controller="application.MainController">
+<AnchorPane prefHeight="600.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/10.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="application.MainController">
    <children>
       <TextArea fx:id="textArea" layoutX="327.0" layoutY="127.0" prefHeight="369.0" prefWidth="265.0" promptText="choose file">
          <effect>
@@ -34,11 +34,11 @@
             </ScrollPane>
          </children>
       </Pane>
-      <Button fx:id="selectFile" layoutX="189.0" layoutY="526.0" mnemonicParsing="false" onAction="#uploadFile" prefHeight="45.0" prefWidth="104.0" text=" Select file">
+      <Button fx:id="selectFile" layoutX="189.0" layoutY="526.0" mnemonicParsing="false" onAction="#selectFile" prefHeight="45.0" prefWidth="104.0" text=" Select file">
          <font>
             <Font name="AR JULIAN" size="14.0" />
          </font></Button>
-      <Button layoutX="301.0" layoutY="526.0" mnemonicParsing="false" onAction="#addbutton" prefHeight="45.0" prefWidth="90.0" text="Confirm">
+      <Button layoutX="301.0" layoutY="526.0" mnemonicParsing="false" onAction="#sendFile" prefHeight="45.0" prefWidth="90.0" text="Confirm">
          <font>
             <Font name="AR JULIAN" size="14.0" />
          </font>

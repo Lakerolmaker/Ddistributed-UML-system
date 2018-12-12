@@ -11,6 +11,7 @@ import TCP.RunnableArg;
 import TCP.TCP;
 import TCP.ZIP;
 import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.geometry.Insets;
@@ -44,25 +45,18 @@ public class MainController implements Initializable {
 
 	@FXML
     private TextArea textArea;
-
     @FXML
     private StackPane stackPane;
-
     @FXML
     private Pane linkPane;
-    
     @FXML
     private AnchorPane scrollpane;
-    
     @FXML
     private ScrollPane scrollbar;
-
     @FXML
 	private ImageView imagePane;
-    
     @FXML
     private Button btn1;
-
     @FXML
     private Button selectFile;
     
@@ -79,22 +73,35 @@ public class MainController implements Initializable {
 	DirectoryChooser directoryChooser = new DirectoryChooser();
 
 	int index = 0;
-	public void addbutton() {
+	public void addbutton(File file) {
 		
 		Button newbtn = new Button();
 		
 		newbtn.setTextAlignment(TextAlignment.CENTER);
 		newbtn.setPadding(new Insets(2, 2, 2, 2));
 		
-		newbtn.setText("button");
+		newbtn.setText(file.getName());
 
-		gridpane.add(newbtn, 0 , index);
-
+		newbtn.setOnAction(new EventHandler<ActionEvent>() {
+			
+			@Override
+			public void handle(ActionEvent event) {
+				// TODO Auto-generated method stub
+				openFile(file);
+			}
+			
+		});
 		
+		gridpane.add(newbtn, 0 , index);
+		gridpane.setHgrow(newbtn, Priority.ALWAYS);
+		gridpane.setVgrow(newbtn, Priority.ALWAYS);
+		
+		scrollpane.setPrefHeight(gridpane.getHeight());
+	
 		index++;
 	}
 	
-	public void uploadFile() throws Exception {
+	public void selectFile() throws Exception {
 		File selectedDirectory = directoryChooser.showDialog(NODE_client.myStage);
 		if (selectedDirectory != null) {
 			File file = new File(selectedDirectory.getAbsolutePath());
@@ -108,7 +115,7 @@ public class MainController implements Initializable {
 
 		}
 	}
-
+	
 	public void notValid() {
 		popup("Error", "Not a valid project");
 		textArea.setText("choose file");
@@ -166,6 +173,8 @@ public class MainController implements Initializable {
 		scrollbar.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
 		scrollbar.setVbarPolicy(ScrollPane.ScrollBarPolicy.ALWAYS);
 		
+		scrollbar.vvalueProperty().bind(gridpane.heightProperty());
+		
 		gridpane.setVgap(20);
 		gridpane.setLayoutX(44);
 		scrollpane.getChildren().add(gridpane);
@@ -180,11 +189,28 @@ public class MainController implements Initializable {
 		stackPane.getChildren().add(progressbar);
 
 		try {
-			// initTCP();
+			initTCP();
 		} catch (Exception e) {
 			System.err.println("Could not initialize the tcp : " + e.getMessage());
 		}
 
+	}
+	
+	public void addfile(File file) {
+	
+		addbutton(file);
+		
+	}
+	
+	public void openFile(File file) {
+		Desktop dt = Desktop.getDesktop();
+		
+		try {
+			dt.open(file);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 
 	public void increase() {
@@ -201,17 +227,9 @@ public class MainController implements Initializable {
 
 			@Override
 			public void run() {
-				// TODO Auto-generated method stub
 				File file = this.getArg();
 
-				Desktop dt = Desktop.getDesktop();
-				try {
-					dt.open(file);
-				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-
+				addfile(file);
 			}
 
 		});
