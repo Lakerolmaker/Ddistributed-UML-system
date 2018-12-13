@@ -11,34 +11,34 @@
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.text.Font?>
 
-<AnchorPane prefHeight="600.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/10.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="application.MainController">
+<AnchorPane maxHeight="600.0" maxWidth="600.0" minHeight="600.0" minWidth="600.0" prefHeight="600.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/10.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="application.MainController">
    <children>
-      <TextArea fx:id="textArea" layoutX="327.0" layoutY="127.0" prefHeight="369.0" prefWidth="265.0" promptText="choose file">
+      <TextArea fx:id="textArea" layoutX="305.0" layoutY="127.0" prefHeight="369.0" prefWidth="285.0" promptText="choose file">
          <effect>
             <Glow />
          </effect>
          <font>
             <Font size="20.0" />
          </font></TextArea>
-      <StackPane fx:id="stackPane" layoutX="230.0" prefHeight="110.0" prefWidth="141.0" />
-      <Pane fx:id="linkPane" layoutX="6.0" layoutY="127.0" prefHeight="369.0" prefWidth="301.0">
+      <StackPane fx:id="stackPane" layoutX="230.0" prefHeight="110.0" prefWidth="140.0" />
+      <Pane fx:id="linkPane" layoutX="10.0" layoutY="127.0" prefHeight="369.0" prefWidth="285.0">
          <effect>
             <DropShadow />
          </effect>
          <children>
             <ImageView fx:id="imagePane" fitHeight="178.0" fitWidth="162.0" layoutX="139.0" nodeOrientation="INHERIT" pickOnBounds="true" preserveRatio="true" />
-            <ScrollPane fx:id="scrollbar" prefHeight="369.0" prefWidth="154.0">
+            <ScrollPane fx:id="scrollbar" prefHeight="369.0" prefWidth="142.0">
               <content>
-                <AnchorPane fx:id="scrollpane" minHeight="0.0" minWidth="0.0" prefHeight="200.0" prefWidth="200.0" style="-fx-spacing: 10;" />
+                <AnchorPane fx:id="scrollpane" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="0.0" prefHeight="215.0" prefWidth="155.0" style="-fx-spacing: 10;" />
               </content>
             </ScrollPane>
          </children>
       </Pane>
-      <Button fx:id="selectFile" layoutX="189.0" layoutY="526.0" mnemonicParsing="false" onAction="#selectFile" prefHeight="45.0" prefWidth="104.0" text=" Select file">
+      <Button fx:id="selectFile" layoutX="195.0" layoutY="526.0" mnemonicParsing="false" onAction="#selectFile" prefHeight="50.0" prefWidth="100.0" text=" Select file">
          <font>
             <Font name="AR JULIAN" size="14.0" />
          </font></Button>
-      <Button layoutX="301.0" layoutY="526.0" mnemonicParsing="false" onAction="#sendFile" prefHeight="45.0" prefWidth="90.0" text="Confirm">
+      <Button layoutX="305.0" layoutY="526.0" mnemonicParsing="false" onAction="#sendFile" prefHeight="50.0" prefWidth="100.0" text="Confirm">
          <font>
             <Font name="AR JULIAN" size="14.0" />
          </font>

@@ -10,12 +10,15 @@ import javax.swing.JOptionPane;
 import TCP.RunnableArg;
 import TCP.TCP;
 import TCP.ZIP;
+import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.geometry.Insets;
+import javafx.scene.Cursor;
 import javafx.scene.control.Button;
+import javafx.scene.control.OverrunStyle;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextArea;
 import javafx.scene.image.ImageView;
@@ -35,12 +38,10 @@ import ui.RingProgressIndicator;
 
 public class MainController implements Initializable {
 
-	public HashMap<String, File> files = new HashMap<String, File>();
-	
-	
 	TCP tcp = new TCP();
 	ZIP zip = new ZIP();
 	RingProgressIndicator progressbar;
+    public static GridPane gridpane = new GridPane();
 	File selectedFile = null;
 
 	@FXML
@@ -60,8 +61,6 @@ public class MainController implements Initializable {
     @FXML
     private Button selectFile;
     
-    GridPane gridpane = new GridPane();
-
 
 	// test the text area
 	public void addNumbers(ActionEvent event) {
@@ -78,15 +77,21 @@ public class MainController implements Initializable {
 		Button newbtn = new Button();
 		
 		newbtn.setTextAlignment(TextAlignment.CENTER);
-		newbtn.setPadding(new Insets(2, 2, 2, 2));
+		newbtn.setPadding(new Insets(5, 5, 5, 5));
+		newbtn.minWidth(122);
+		newbtn.prefWidth(122);
+		newbtn.maxWidth(122);
 		
-		newbtn.setText(file.getName());
-
+		newbtn.setText(removeFileEnding(file.getName()));
+		
+		newbtn.setTextOverrun(OverrunStyle.ELLIPSIS);
+		
+		
+		newbtn.setCursor(Cursor.HAND);
 		newbtn.setOnAction(new EventHandler<ActionEvent>() {
 			
 			@Override
 			public void handle(ActionEvent event) {
-				// TODO Auto-generated method stub
 				openFile(file);
 			}
 			
@@ -140,12 +145,28 @@ public class MainController implements Initializable {
 
 		String fileText = "";
 		fileText += "Project size : " + file.getName() + "\n";
-		fileText += "File size    : " + getSizeEnding(file.getTotalSpace()) + "\n";
-		fileText += "Project ETA  : " + "???" + "\n";
+		fileText += "File size       : " + getSizeEnding(folderSize(file)) + "\n";
+		fileText += "Project ETA : " + "???" + "\n";
 
 		textArea.setText(fileText);
 
 	}
+	
+	public static long folderSize(File directory) {
+	    long length = 0;
+	    for (File file : directory.listFiles()) {
+	        if (file.isFile())
+	            length += file.length();
+	        else
+	            length += folderSize(file);
+	    }
+	    return length;
+	}
+	
+	public String removeFileEnding(String str) {
+		return str.substring(0, str.lastIndexOf('.'));
+	}
+
 
 	public static String getSizeEnding(long size) {
 
@@ -171,12 +192,13 @@ public class MainController implements Initializable {
 	public void initialize(URL arg0, ResourceBundle arg1) {
 
 		scrollbar.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
-		scrollbar.setVbarPolicy(ScrollPane.ScrollBarPolicy.ALWAYS);
+		scrollbar.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
 		
 		scrollbar.vvalueProperty().bind(gridpane.heightProperty());
 		
 		gridpane.setVgap(20);
-		gridpane.setLayoutX(44);
+		gridpane.setLayoutX(10);
+		gridpane.setLayoutY(9);
 		scrollpane.getChildren().add(gridpane);
 		
 		String colour = "abcdef";
@@ -198,7 +220,13 @@ public class MainController implements Initializable {
 	
 	public void addfile(File file) {
 	
-		addbutton(file);
+			Platform.runLater(()->{
+
+				addbutton(file);
+
+			});
+		
+	
 		
 	}
 	
