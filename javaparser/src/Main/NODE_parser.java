@@ -26,6 +26,7 @@ import com.github.javaparser.ast.visitor.VoidVisitorAdapter;
 import com.google.gson.Gson;
 
 import FileClasses.Method;
+import FileClasses.Progress;
 import FileClasses.Relationship;
 import FileClasses.Relationship.RelaType;
 import FileClasses.UMLClass;
@@ -39,25 +40,41 @@ import TCP.ZIP;
 public class NODE_parser {
 
 	public static TCP tcp = new TCP();
+	public static TCP progress_tcp = new TCP();
+	public static TCP project_name_tcp = new TCP();
+	public static Gson gson = new Gson();
 
 	public static void main(String[] args) throws Exception {
 
-		tcp.client.connectTNetwork("visualizer");
+		
 
 		tcp.server.initializeServer();
+
 		tcp.server.startFileServer(new RunnableArg<File>() {
 
 			@Override
 			public void run() {
+				
+				try {
+					tcp.client.connectTNetwork("visualizer");
+				} catch (Exception e) {
+					System.err.println("TCP-Server - Error : No visualizer avalible");
+				}
 
 				System.out.println("Recived data");
+				sendProgress(10, "Parsing");
 
 				ZIP zip = new ZIP();
 				File recivedFile = this.getArg();
 
+				sendProgress(20, "Parsing");
 				File unzipedFile = zip.uncompress(recivedFile);
 
 				UMLPackage project = Parse(unzipedFile);
+
+				sendProjectName(project.getName());
+				
+				sendProgress(80, "Parsing");
 
 				Gson jsonParser = new Gson();
 				String project_json = jsonParser.toJson(project);
@@ -68,7 +85,8 @@ public class NODE_parser {
 
 				String data_json = jsonParser.toJson(data);
 
-				tcp.client.send(data_json + "\n");
+				sendProgress(100, "Parsing");
+				tcp.client.send(data_json);
 				System.out.println("Parsed data sent");
 
 				// : Deleted the files after the parsed data is sent to the visualizer.
@@ -79,8 +97,46 @@ public class NODE_parser {
 
 			}
 		});
+
 		tcp.server.addToNetwork("parser");
 
+	}
+
+	public static void sendProjectName(String name) {
+		project_name_tcp.client.onConnect(new RunnableArg<String>() {
+
+			@Override
+			public void run() {
+				project_name_tcp.client.send(name);
+			}
+
+		});
+		try {
+
+			project_name_tcp.client.connectTNetwork("project_name_server");
+
+		} catch (Exception e) {
+		}
+	}
+
+	public static void sendProgress(int progress, String stage) {
+
+		progress_tcp.client.onConnect(new RunnableArg<String>() {
+
+			@Override
+			public void run() {
+				Progress prog = new Progress(progress, stage);
+				String json = gson.toJson(prog);
+				progress_tcp.client.send(json);
+			}
+
+		});
+		try {
+
+			progress_tcp.client.connectTNetwork("progress_server");
+
+		} catch (Exception e) {
+		}
 	}
 
 	public static UMLPackage Parse(File file) {
@@ -102,6 +158,7 @@ public class NODE_parser {
 				UMLpackage.classes.add(newClass);
 			}
 		}
+		
 		for (File newFile : files) {
 			if ((newFile.isFile() && (!newFile.isHidden()) && (getFileType(newFile).equals(".java")))) {
 				try {
@@ -112,7 +169,7 @@ public class NODE_parser {
 				}
 			}
 		}
-
+		
 		for (Relationship relationship : UMLpackage.getRelationships()) {
 			if (relationship.getType() != null) {
 				if (relationship.getType() == RelaType.ASSOCIATION) {
@@ -127,6 +184,7 @@ public class NODE_parser {
 				}
 			}
 		}
+		
 		return UMLpackage;
 
 	}

@@ -12,6 +12,7 @@ import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 
+import FileClasses.Progress;
 import FileClasses.Relationship;
 import FileClasses.UMLClass;
 import FileClasses.UMLPackage;
@@ -20,6 +21,7 @@ import TCP.TCP;
 import TCP.TCP_data;
 import TCP.ZIP;
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.stage.Stage;
 import javafx.scene.canvas.*;
@@ -34,6 +36,8 @@ public class NODE_Visualizer extends Application {
 	public static DrawableCLass[][] classes;
 	StandardValues standard = new StandardValues();
 	public static TCP tcp = new TCP();
+	public static TCP progress_tcp = new TCP();
+	public static Gson gson = new Gson();
 	ZIP zip = new ZIP();
 	public double offsetX = 0;
 	public double offsetY = 0;
@@ -41,7 +45,7 @@ public class NODE_Visualizer extends Application {
 	public static String[] systemArgs;
 
 	public static void main(String[] args) throws Exception {
-		
+
 		systemArgs = args;
 
 		tcp.server.initializeServer();
@@ -51,14 +55,13 @@ public class NODE_Visualizer extends Application {
 			public void run() {
 
 				String raw_data = this.getArg();
-				Gson javaParser = new Gson();
-				TCP_data data = javaParser.fromJson(raw_data, TCP_data.class);
+				TCP_data data = gson.fromJson(raw_data, TCP_data.class);
 
 				if (data.metaData.equals("Parsed data")) {
 
 					System.out.println("Recived parsed data");
 
-					UMLPackage project = javaParser.fromJson(data.data, UMLPackage.class);
+					UMLPackage project = gson.fromJson(data.data, UMLPackage.class);
 
 					project_name = project.name;
 
@@ -78,6 +81,26 @@ public class NODE_Visualizer extends Application {
 
 	}
 
+	public static void sendProgress(int progress, String stage) {
+
+		progress_tcp.client.onConnect(new RunnableArg<String>() {
+
+			@Override
+			public void run() {
+				Progress prog = new Progress(progress, stage);
+				String json = gson.toJson(prog);
+				progress_tcp.client.send(json);
+			}
+
+		});
+		try {
+
+			progress_tcp.client.connectTNetwork("progress_server");
+
+		} catch (Exception e) {
+		}
+	}
+
 	public static void Lanchprogram() {
 		launch(systemArgs);
 	}
@@ -87,8 +110,13 @@ public class NODE_Visualizer extends Application {
 
 	public void start(Stage primaryStage) throws Exception {
 
+		tcp.client.connectTNetwork("client");
+
+		sendProgress(1, "Visualizing");
+
 		creatElements();
 
+		sendProgress(20, "Visualizing");
 		Canvas_height = getCanvasHeight();
 		Canvas_width = getCanvasWidth();
 
@@ -110,13 +138,23 @@ public class NODE_Visualizer extends Application {
 
 		System.out.println("Visualizing comeplete");
 
-		tcp.client.connectTNetwork("client");
-		tcp.client.sendFile(uml_picture);
+		sendProgress(90, "Visualizing");
+
+		try {
+			tcp.client.sendFile(uml_picture);
+		} catch (Exception e) {
+		}
 
 		System.out.println("Picture sent to clients");
 
 		uml_picture.delete();
 		System.out.println("Cleanup comeplete");
+
+		//: closes the program
+		Platform.setImplicitExit(false);
+		Platform.exit();
+		
+		sendProgress(100, "Visualizing");
 
 	}
 
@@ -128,7 +166,9 @@ public class NODE_Visualizer extends Application {
 		GraphicsContext cx = canvas.getGraphicsContext2D();
 
 		drawElemements(cx);
+		sendProgress(50, "Visualizing");
 		drawArrows(cx);
+		sendProgress(70, "Visualizing");
 
 		return saveToImage(canvas, project_name);
 
@@ -146,7 +186,8 @@ public class NODE_Visualizer extends Application {
 
 		int totallAmount = horisisontal * vertical;
 		int picture_number = 0;
-		
+
+		System.out.println("Rendering images");
 		for (int y = 0; y < vertical; y++) {
 			for (int x = 0; x < horisisontal; x++) {
 
@@ -174,10 +215,11 @@ public class NODE_Visualizer extends Application {
 
 				this.offsetX -= standard.normalredering_limit;
 				resetColor();
-				
-				// : Prints the progress
-				System.out.println(getProcetage(picture_number , totallAmount)  + "%");
 
+				// : Prints the progress
+				int procentage = getProcetage(picture_number, totallAmount);
+				//System.out.println(procentage + "%");
+				sendProgress(procentage, "Rendering");
 			}
 			this.offsetX = 0;
 			this.offsetY -= standard.normalredering_limit;
@@ -185,7 +227,9 @@ public class NODE_Visualizer extends Application {
 		}
 
 		System.out.println("Merging " + picture_number + " Images");
+
 		BufferedImage finalIMG = null;
+		int merge_index = 0;
 		for (int y = 0; y < vertical; y++) {
 			BufferedImage rowIMG = null;
 			for (int x = 0; x < horisisontal; x++) {
@@ -195,6 +239,10 @@ public class NODE_Visualizer extends Application {
 				else
 					rowIMG = i1;
 				pictures[y][x].delete();
+				merge_index++;
+				int procentage = getProcetage(merge_index, totallAmount);
+				sendProgress(procentage, "Merging");
+
 			}
 			if (finalIMG != null)
 				finalIMG = imagemerger.joinVertical(finalIMG, rowIMG, 1);
@@ -202,16 +250,17 @@ public class NODE_Visualizer extends Application {
 				finalIMG = rowIMG;
 		}
 
+		sendProgress(70, "Visualizing");
 		System.out.println("Done Mergin images");
 		System.out.println("Writing to file");
-		
 		File image_location = new File(project_name + ".png");
 		ImageIO.write(finalIMG, "png", image_location);
+		sendProgress(80, "Visualizing");
 		return image_location;
 	}
-	
-	public int getProcetage(int a , int b){
-		return (int)(a * 100.0f) / b;
+
+	public int getProcetage(int a, int b) {
+		return (int) (a * 100.0f) / b;
 	}
 
 	public static ArrayList<UMLClass> getClasses(UMLPackage inputPackage) {

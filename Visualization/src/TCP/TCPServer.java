@@ -60,6 +60,7 @@ public class TCPServer {
 	public ServerSocket server = null;
 	public PostClass post = new PostClass();
 	ZIP zip = new ZIP();
+	public boolean showOutput = false;
 
 	public void initializeServer() throws Exception {
 		int port = findFreePort();
@@ -93,6 +94,9 @@ public class TCPServer {
 						BufferedReader br = new BufferedReader(in);
 
 						String dataString = br.readLine();
+						if (showOutput)
+							System.out.println(
+									"TCP-Server - Recived : " + dataString.getBytes().length + " bytes of data");
 
 						invocation.setArg(dataString);
 						invocation.run();
@@ -110,7 +114,7 @@ public class TCPServer {
 
 		new Thread(serverCode).start();
 
-		System.out.println("TCP server running on - " + this.getIp() + ":" + this.getPort());
+		System.out.println("TCP text-server running on - " + this.getIp() + ":" + this.getPort());
 	}
 
 	public void startFileServer(RunnableArg<File> invocation) {
@@ -123,7 +127,9 @@ public class TCPServer {
 				while (true) {
 					Socket socket;
 					try {
+						
 						socket = server.accept();
+						
 						File file = saveFile(socket);
 
 						invocation.setArg(file);
@@ -141,7 +147,6 @@ public class TCPServer {
 		};
 
 		new Thread(serverCode).start();
-		;
 
 		System.out.println("TCP file-server running on - " + this.getIp() + ":" + this.getPort());
 
@@ -224,6 +229,10 @@ public class TCPServer {
 		post.URL = "http://api.lakerolmaker.com/network_lookup.php";
 
 		post.post();
+	}
+
+	public void showOutput(Boolean value) {
+		this.showOutput = value;
 	}
 
 }

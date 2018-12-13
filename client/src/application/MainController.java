@@ -4,9 +4,10 @@ import java.awt.Desktop;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
-import java.util.HashMap;
 import java.util.ResourceBundle;
 import javax.swing.JOptionPane;
+import com.google.gson.Gson;
+import FileClasses.Progress;
 import TCP.RunnableArg;
 import TCP.TCP;
 import TCP.ZIP;
@@ -18,6 +19,7 @@ import javafx.fxml.Initializable;
 import javafx.geometry.Insets;
 import javafx.scene.Cursor;
 import javafx.scene.control.Button;
+import javafx.scene.control.Label;
 import javafx.scene.control.OverrunStyle;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextArea;
@@ -27,7 +29,6 @@ import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.CornerRadii;
 import javafx.scene.layout.GridPane;
-import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.StackPane;
@@ -39,28 +40,37 @@ import ui.RingProgressIndicator;
 public class MainController implements Initializable {
 
 	TCP tcp = new TCP();
+	TCP progressServer = new TCP();
+	TCP nameServer = new TCP();
 	ZIP zip = new ZIP();
 	RingProgressIndicator progressbar;
-    public static GridPane gridpane = new GridPane();
+	GridPane gridpane = new GridPane();
 	File selectedFile = null;
 
+	public long StartTime = 0;
+	public long endTime = 0;
+	public long fileSize = 0;
+
 	@FXML
-    private TextArea textArea;
-    @FXML
-    private StackPane stackPane;
-    @FXML
-    private Pane linkPane;
-    @FXML
-    private AnchorPane scrollpane;
-    @FXML
-    private ScrollPane scrollbar;
-    @FXML
+	private TextArea textArea;
+	@FXML
+	private StackPane stackPane;
+	@FXML
+	private Pane linkPane;
+	@FXML
+	private AnchorPane scrollpane;
+	@FXML
+	private ScrollPane scrollbar;
+	@FXML
 	private ImageView imagePane;
-    @FXML
-    private Button btn1;
-    @FXML
-    private Button selectFile;
-    
+	@FXML
+	private Button btn1;
+	@FXML
+	private Button selectFile;
+	@FXML
+	private Label Progress_label;
+	@FXML
+	private Label Project_name_label;
 
 	// test the text area
 	public void addNumbers(ActionEvent event) {
@@ -72,40 +82,41 @@ public class MainController implements Initializable {
 	DirectoryChooser directoryChooser = new DirectoryChooser();
 
 	int index = 0;
+
 	public void addbutton(File file) {
-		
+
 		Button newbtn = new Button();
-		
+
 		newbtn.setTextAlignment(TextAlignment.CENTER);
 		newbtn.setPadding(new Insets(5, 5, 5, 5));
 		newbtn.minWidth(122);
 		newbtn.prefWidth(122);
 		newbtn.maxWidth(122);
-		
+
 		newbtn.setText(removeFileEnding(file.getName()));
-		
+
 		newbtn.setTextOverrun(OverrunStyle.ELLIPSIS);
-		
-		
+		newbtn.setTextAlignment(TextAlignment.CENTER);
+
 		newbtn.setCursor(Cursor.HAND);
 		newbtn.setOnAction(new EventHandler<ActionEvent>() {
-			
+
 			@Override
 			public void handle(ActionEvent event) {
 				openFile(file);
 			}
-			
+
 		});
-		
-		gridpane.add(newbtn, 0 , index);
+
+		gridpane.add(newbtn, 0, index);
 		gridpane.setHgrow(newbtn, Priority.ALWAYS);
 		gridpane.setVgrow(newbtn, Priority.ALWAYS);
-		
+
 		scrollpane.setPrefHeight(gridpane.getHeight());
-	
+
 		index++;
 	}
-	
+
 	public void selectFile() throws Exception {
 		File selectedDirectory = directoryChooser.showDialog(NODE_client.myStage);
 		if (selectedDirectory != null) {
@@ -120,7 +131,7 @@ public class MainController implements Initializable {
 
 		}
 	}
-	
+
 	public void notValid() {
 		popup("Error", "Not a valid project");
 		textArea.setText("choose file");
@@ -151,22 +162,21 @@ public class MainController implements Initializable {
 		textArea.setText(fileText);
 
 	}
-	
+
 	public static long folderSize(File directory) {
-	    long length = 0;
-	    for (File file : directory.listFiles()) {
-	        if (file.isFile())
-	            length += file.length();
-	        else
-	            length += folderSize(file);
-	    }
-	    return length;
+		long length = 0;
+		for (File file : directory.listFiles()) {
+			if (file.isFile())
+				length += file.length();
+			else
+				length += folderSize(file);
+		}
+		return length;
 	}
-	
+
 	public String removeFileEnding(String str) {
 		return str.substring(0, str.lastIndexOf('.'));
 	}
-
 
 	public static String getSizeEnding(long size) {
 
@@ -182,9 +192,24 @@ public class MainController implements Initializable {
 		return null;
 	}
 
-	public void sendFile() throws Exception {
+	public void sendFile() {
 
-		tcp.client.sendFile(selectedFile);
+		if (selectedFile != null) {
+
+			try {
+				tcp.client.connectTNetwork("parser");
+			} catch (Exception e) {
+				popup("Error", "No notwork avaliable , contact your system administrator");
+			}
+
+			fileSize = folderSize(selectedFile);
+			StartTime = System.nanoTime();
+
+			tcp.client.sendFile(selectedFile);
+
+		} else {
+			popup("Error", "Please select a project");
+		}
 
 	}
 
@@ -193,14 +218,14 @@ public class MainController implements Initializable {
 
 		scrollbar.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
 		scrollbar.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
-		
+
 		scrollbar.vvalueProperty().bind(gridpane.heightProperty());
-		
+
 		gridpane.setVgap(20);
 		gridpane.setLayoutX(10);
 		gridpane.setLayoutY(9);
 		scrollpane.getChildren().add(gridpane);
-		
+
 		String colour = "abcdef";
 		linkPane.setBackground(
 				new Background(new BackgroundFill(Color.web("#" + colour), CornerRadii.EMPTY, Insets.EMPTY)));
@@ -217,22 +242,62 @@ public class MainController implements Initializable {
 		}
 
 	}
-	
-	public void addfile(File file) {
-	
-			Platform.runLater(()->{
 
-				addbutton(file);
+	public void printTotalltime() {
 
-			});
-		
-	
-		
+		endTime = System.nanoTime();
+
+		long nanoSeconds = endTime - StartTime;
+
+		long seconds = nanoSeconds / 1000000000;
+
+		System.out.println("Totall time in nano-seconds : " + nanoSeconds);
+		System.out.println("Totall time in seconds : " + seconds);
+
+		getETAconstant(nanoSeconds);
 	}
-	
+
+	public void getETAconstant(long nanoSeconds) {
+
+		long bytes = selectedFile.length();
+
+		long bytesPernano = nanoSeconds / fileSize;
+
+		System.out.println("ETA contant : " + bytesPernano);
+
+	}
+
+	public void addfile(File file) {
+
+		Platform.runLater(() -> {
+
+			addbutton(file);
+			printTotalltime();
+
+		});
+
+	}
+
+	public void addProjectName(String name) {
+
+		Project_name_label.setText(name);
+	}
+
+	public void addProgress_Text(String progress) {
+
+		Progress_label.setText(progress);
+
+	}
+
+	public void setProgressBar(int progress) {
+
+		progressbar.setProgress(progress);
+
+	}
+
 	public void openFile(File file) {
 		Desktop dt = Desktop.getDesktop();
-		
+
 		try {
 			dt.open(file);
 		} catch (IOException e) {
@@ -244,7 +309,7 @@ public class MainController implements Initializable {
 	public void increase() {
 		int progress = progressbar.getProgress();
 		progress += 1;
-		
+
 		progressbar.setProgress(progress);
 	}
 
@@ -261,9 +326,46 @@ public class MainController implements Initializable {
 			}
 
 		});
+
 		tcp.server.addToNetwork("client");
 
-		tcp.client.connectTNetwork("parser");
+		ProjectName_Server();
+		progress_Server();
+	}
+
+	public void ProjectName_Server() throws Exception {
+
+		nameServer.server.initializeServer();
+		nameServer.server.start(new RunnableArg<String>() {
+
+			@Override
+			public void run() {
+				Platform.runLater(() -> {
+					addProjectName(this.getArg());
+				});
+			}
+		});
+		nameServer.server.addToNetwork("project_name_server");
+	}
+
+	public void progress_Server() throws Exception {
+
+		progressServer.server.initializeServer();
+		progressServer.server.start(new RunnableArg<String>() {
+
+			@Override
+			public void run() {
+				Gson gson = new Gson();
+				Progress progress = gson.fromJson(this.getArg(), Progress.class);
+
+				Platform.runLater(() -> {
+					addProgress_Text(progress.stage);
+					setProgressBar(progress.procentage);
+				});
+
+			}
+		});
+		progressServer.server.addToNetwork("progress_server");
 
 	}
 

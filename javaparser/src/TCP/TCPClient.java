@@ -63,6 +63,8 @@ public class TCPClient {
 	public Socket socket = null;
 	private PostClass post = new PostClass();
 	ZIP zip = new ZIP();
+	private RunnableArg<String> connectInvocation;
+	public boolean showOutput = false;
 
 	public void connect(String ipadress, int port) throws UnknownHostException, IOException {
 		socket = new Socket(ipadress, port);
@@ -76,40 +78,49 @@ public class TCPClient {
 			OutputStream os = socket.getOutputStream();
 			OutputStreamWriter osw = new OutputStreamWriter(os);
 			BufferedWriter bw = new BufferedWriter(osw);
-			osw.write(message);
+			osw.write(message + "\n");
 			osw.flush();
-			System.out.println("Wrote " + message.getBytes().length + " bytes to the server");
+			if (showOutput)
+				System.out.println("TCP-Client - Wrote " + message.getBytes().length + " bytes to the server");
 		} catch (IOException e) {
 		}
 	}
-	
-	public void sendFile(File file) throws IOException {
-		
-		//: if the file is directory , it is ziped and sent.
-		if(file.isDirectory()) {
-			
+
+	public void sendFile(File file){
+
+		// : if the file is directory , it is ziped and sent.
+		if (file.isDirectory()) {
+
 			File compressedFile = null;
 			try {
 				compressedFile = zip.compress(file);
 				send_a_file(compressedFile);
-			} finally {
-				//: deletes the ziped file.
+			}catch(Exception e){
+				System.err.println("TCP-Client - Could not send file");
+			}finally {
+				// : deletes the ziped file.
 				compressedFile.delete();
 			}
-	
-		//: if it is a normal file it is send normally.
-		}else if(file.isFile()) {
-			send_a_file(file);
+
+			// : if it is a normal file it is send normally.
+		} else if (file.isFile()) {
+			try {
+				send_a_file(file);
+			}catch(Exception e){
+				System.err.println("TCP-Client - Could not send file");
+			}
 		}
-		
+
 	}
-	
+
 	private void send_a_file(File file) throws IOException {
 		BufferedOutputStream out = new BufferedOutputStream(socket.getOutputStream());
 		try (DataOutputStream d = new DataOutputStream(out)) {
 			d.writeUTF(file.getName());
 			Files.copy(file.toPath(), d);
 		}
+		if (showOutput)
+			System.out.println("TCP-client - Sent a file ");
 	}
 
 	public Socket getSocket() {
@@ -145,7 +156,29 @@ public class TCPClient {
 		int port = client.get("port").getAsInt();
 
 		this.connect(ip, port);
+		runInvoation();
+	}
 
+	public void runInvoation() {
+		if (this.connectInvocation != null) {
+			this.connectInvocation.run();
+		}
+	}
+
+	public void onConnect(RunnableArg<String> invocation) {
+
+			this.connectInvocation = invocation;
+	}
+
+	public boolean isConnected() {
+		if(this.socket != null)
+			return this.socket.isConnected();
+		else
+			return false;			
+	}
+
+	public void showOutput(Boolean value) {
+		this.showOutput = value;
 	}
 
 }
