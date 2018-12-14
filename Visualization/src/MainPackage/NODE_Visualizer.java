@@ -24,6 +24,8 @@ import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.stage.Stage;
+import javafx.scene.Group;
+import javafx.scene.Scene;
 import javafx.scene.canvas.*;
 import javafx.scene.image.WritableImage;
 import javafx.scene.paint.Color;
@@ -34,19 +36,40 @@ public class NODE_Visualizer extends Application {
 	public static ArrayList<UMLClass> umlClasses = new ArrayList<UMLClass>();
 	public static ArrayList<Relationship> rellationships = new ArrayList<Relationship>();
 	public static DrawableCLass[][] classes;
-	StandardValues standard = new StandardValues();
+
 	public static TCP tcp = new TCP();
 	public static TCP progress_tcp = new TCP();
+
+	StandardValues standard = new StandardValues();
 	public static Gson gson = new Gson();
 	ZIP zip = new ZIP();
+
 	public double offsetX = 0;
 	public double offsetY = 0;
 
-	public static String[] systemArgs;
+	double Canvas_height;
+	double Canvas_width;
+
+
+	public void cleanup() {
+		Canvas_height = 0;
+		Canvas_width = 0;
+		offsetX = 0;
+		offsetY = 0;
+		project_name = "UMLFromJava";
+		umlClasses = new ArrayList<UMLClass>();
+		rellationships = new ArrayList<Relationship>();
+		classes = null;
+
+		X = 0;
+		Y = 0;
+		targetX = 0;
+		targetY = 0;
+	}
 
 	public static void main(String[] args) throws Exception {
 
-		systemArgs = args;
+		NODE_Visualizer visualizer = new NODE_Visualizer();
 
 		tcp.server.initializeServer();
 		tcp.server.start(new RunnableArg<String>() {
@@ -69,7 +92,7 @@ public class NODE_Visualizer extends Application {
 					rellationships = getRellationships(project);
 
 					System.out.println("Beginning visualizing");
-					Lanchprogram();
+					visualizer.startVisualizer();
 
 				}
 			}
@@ -78,6 +101,10 @@ public class NODE_Visualizer extends Application {
 
 		tcp.server.post.addPostParamter("master_node", "true");
 		tcp.server.addToNetwork("visualizer");
+
+		Platform.setImplicitExit(false);
+
+		launch(args);
 
 	}
 
@@ -93,68 +120,81 @@ public class NODE_Visualizer extends Application {
 			}
 
 		});
+
 		try {
-
 			progress_tcp.client.connectTNetwork("progress_server");
-
 		} catch (Exception e) {
 		}
 	}
 
-	public static void Lanchprogram() {
-		launch(systemArgs);
+	public void startVisualizer() {
+
+		Platform.runLater(new Runnable() {
+
+			@Override
+			public void run() {
+
+				try {
+					tcp.client.connectTNetwork("client");
+				} catch (Exception e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}
+
+				sendProgress(1, "Visualizing");
+
+				creatElements();
+
+				sendProgress(20, "Visualizing");
+				Canvas_height = getCanvasHeight();
+				Canvas_width = getCanvasWidth();
+
+				if (Canvas_height > Canvas_width) {
+					Canvas_width = Canvas_height;
+				} else {
+					Canvas_height = Canvas_width;
+				}
+
+				File uml_picture = null;
+				if (Canvas_height > standard.normalredering_limit) {
+					System.out.println("Canvas size exeeded limit of " + standard.normalredering_limit
+							+ "px. Seqentual redering turned on");
+					try {
+						uml_picture = sequentialRendering();
+					} catch (IOException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+				} else {
+					System.out.println("Normal rendering : on");
+					uml_picture = normalRender();
+				}
+
+				System.out.println("Visualizing comeplete");
+
+				sendProgress(90, "Visualizing");
+
+				try {
+					tcp.client.sendFile(uml_picture);
+				} catch (Exception e) {
+				}
+
+				System.out.println("Picture sent to clients");
+
+				uml_picture.delete();
+				cleanup();
+				System.out.println("Cleanup comeplete");
+
+				sendProgress(100, "Visualizing");
+			}
+
+		});
+
 	}
 
-	double Canvas_height;
-	double Canvas_width;
 
 	public void start(Stage primaryStage) throws Exception {
-
-		tcp.client.connectTNetwork("client");
-
-		sendProgress(1, "Visualizing");
-
-		creatElements();
-
-		sendProgress(20, "Visualizing");
-		Canvas_height = getCanvasHeight();
-		Canvas_width = getCanvasWidth();
-
-		if (Canvas_height > Canvas_width) {
-			Canvas_width = Canvas_height;
-		} else {
-			Canvas_height = Canvas_width;
-		}
-
-		File uml_picture;
-		if (Canvas_height > standard.normalredering_limit) {
-			System.out.println("Canvas size exeeded limit of " + standard.normalredering_limit
-					+ "px. Seqentual redering turned on");
-			uml_picture = sequentialRendering();
-		} else {
-			System.out.println("Normal rendering : on");
-			uml_picture = normalRender();
-		}
-
-		System.out.println("Visualizing comeplete");
-
-		sendProgress(90, "Visualizing");
-
-		try {
-			tcp.client.sendFile(uml_picture);
-		} catch (Exception e) {
-		}
-
-		System.out.println("Picture sent to clients");
-
-		uml_picture.delete();
-		System.out.println("Cleanup comeplete");
-
-		//: closes the program
-		Platform.setImplicitExit(false);
-		Platform.exit();
 		
-		sendProgress(100, "Visualizing");
 
 	}
 
@@ -218,7 +258,7 @@ public class NODE_Visualizer extends Application {
 
 				// : Prints the progress
 				int procentage = getProcetage(picture_number, totallAmount);
-				//System.out.println(procentage + "%");
+				// System.out.println(procentage + "%");
 				sendProgress(procentage, "Rendering");
 			}
 			this.offsetX = 0;

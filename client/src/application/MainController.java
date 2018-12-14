@@ -11,6 +11,7 @@ import FileClasses.Progress;
 import TCP.RunnableArg;
 import TCP.TCP;
 import TCP.ZIP;
+import javafx.animation.FadeTransition;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
@@ -35,6 +36,7 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
 import javafx.scene.text.TextAlignment;
 import javafx.stage.DirectoryChooser;
+import javafx.util.Duration;
 import ui.RingProgressIndicator;
 
 public class MainController implements Initializable {
@@ -87,18 +89,19 @@ public class MainController implements Initializable {
 
 		Button newbtn = new Button();
 
+		newbtn.setCursor(Cursor.HAND);
+
 		newbtn.setTextAlignment(TextAlignment.CENTER);
-		newbtn.setPadding(new Insets(5, 5, 5, 5));
-		newbtn.minWidth(122);
-		newbtn.prefWidth(122);
-		newbtn.maxWidth(122);
+		newbtn.setTextOverrun(OverrunStyle.ELLIPSIS);
+
+		newbtn.setPadding(new Insets(8, 8, 8, 8));
+
+		newbtn.setMinWidth(122);
+		newbtn.setPrefWidth(122);
+		newbtn.setMaxWidth(122);
 
 		newbtn.setText(removeFileEnding(file.getName()));
 
-		newbtn.setTextOverrun(OverrunStyle.ELLIPSIS);
-		newbtn.setTextAlignment(TextAlignment.CENTER);
-
-		newbtn.setCursor(Cursor.HAND);
 		newbtn.setOnAction(new EventHandler<ActionEvent>() {
 
 			@Override
@@ -108,13 +111,21 @@ public class MainController implements Initializable {
 
 		});
 
+		newbtn.setOpacity(0);
 		gridpane.add(newbtn, 0, index);
-		gridpane.setHgrow(newbtn, Priority.ALWAYS);
-		gridpane.setVgrow(newbtn, Priority.ALWAYS);
+		
+		fadeIn(newbtn);
 
 		scrollpane.setPrefHeight(gridpane.getHeight());
 
 		index++;
+	}
+
+	public void fadeIn(Button btn) {
+		FadeTransition ft = new FadeTransition(Duration.millis(1200), btn);
+		ft.setFromValue(0.0);
+		ft.setToValue(1.0);
+		ft.play();
 	}
 
 	public void selectFile() throws Exception {
@@ -157,7 +168,7 @@ public class MainController implements Initializable {
 		String fileText = "";
 		fileText += "Project size : " + file.getName() + "\n";
 		fileText += "File size       : " + getSizeEnding(folderSize(file)) + "\n";
-		fileText += "Project ETA : " + "???" + "\n";
+		fileText += "Project ETA : " + getTimeEnding(getEAT(folderSize(file))) + "\n";
 
 		textArea.setText(fileText);
 
@@ -192,6 +203,21 @@ public class MainController implements Initializable {
 		return null;
 	}
 
+	public String getTimeEnding(long seconds) {
+		if (seconds < 60) {
+			return seconds + " Seconds";
+		} else if (seconds < 3600) {
+			return seconds / 60 + " Minutes";
+		} else if (seconds < 86400) {
+			return seconds / 3600 + " Hours";
+		} else if (seconds < 86400) {
+			return seconds / 31536000 + " Days";
+		}else if (seconds > 31536000) {
+			return seconds / 31536000 + " Years";
+		}
+		return null;
+	}
+	
 	public void sendFile() {
 
 		if (selectedFile != null) {
@@ -249,15 +275,15 @@ public class MainController implements Initializable {
 
 		long nanoSeconds = endTime - StartTime;
 
-		long seconds = nanoSeconds / 1000000000;
+		long seconds = getSeconds(nanoSeconds);
 
 		System.out.println("Totall time in nano-seconds : " + nanoSeconds);
 		System.out.println("Totall time in seconds : " + seconds);
 
-		getETAconstant(nanoSeconds);
+		printETAConstant(nanoSeconds);
 	}
 
-	public void getETAconstant(long nanoSeconds) {
+	public void printETAConstant(long nanoSeconds) {
 
 		long bytes = selectedFile.length();
 
@@ -265,6 +291,16 @@ public class MainController implements Initializable {
 
 		System.out.println("ETA contant : " + bytesPernano);
 
+	}
+	
+	long ETAConstant = 757289;	
+	public long getEAT(long bytes) {
+		long nanoSec = bytes * ETAConstant;
+		return getSeconds(nanoSec);
+	}
+	
+	public long getSeconds(long nanoSecs) {
+		return nanoSecs / 1000000000;
 	}
 
 	public void addfile(File file) {
