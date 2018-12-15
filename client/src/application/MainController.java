@@ -5,6 +5,8 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.util.ResourceBundle;
+import java.util.concurrent.TimeUnit;
+
 import javax.swing.JOptionPane;
 import com.google.gson.Gson;
 import FileClasses.Progress;
@@ -204,6 +206,7 @@ public class MainController implements Initializable {
 	}
 
 	public String getTimeEnding(long seconds) {
+		//TimeUnit.HOURS.
 		if (seconds < 60) {
 			return seconds + " Seconds";
 		} else if (seconds < 3600) {
@@ -216,6 +219,7 @@ public class MainController implements Initializable {
 			return seconds / 31536000 + " Years";
 		}
 		return null;
+		
 	}
 	
 	public void sendFile() {

@@ -43,13 +43,13 @@ public class NODE_Visualizer extends Application {
 	StandardValues standard = new StandardValues();
 	public static Gson gson = new Gson();
 	ZIP zip = new ZIP();
+	P4J p4j = new P4J();
 
 	public double offsetX = 0;
 	public double offsetY = 0;
 
 	double Canvas_height;
 	double Canvas_width;
-
 
 	public void cleanup() {
 		Canvas_height = 0;
@@ -192,9 +192,7 @@ public class NODE_Visualizer extends Application {
 
 	}
 
-
 	public void start(Stage primaryStage) throws Exception {
-		
 
 	}
 
@@ -268,37 +266,31 @@ public class NODE_Visualizer extends Application {
 
 		System.out.println("Merging " + picture_number + " Images");
 
-		BufferedImage finalIMG = null;
-		int merge_index = 0;
+		String[] flatGrid = new String[vertical * horisisontal];
+		int index = 0;
 		for (int y = 0; y < vertical; y++) {
-			BufferedImage rowIMG = null;
 			for (int x = 0; x < horisisontal; x++) {
-				BufferedImage i1 = ImageIO.read(pictures[y][x]);
-				if (rowIMG != null)
-					rowIMG = imagemerger.joinHorizontal(rowIMG, i1, 1);
-				else
-					rowIMG = i1;
-				pictures[y][x].delete();
-				merge_index++;
-				int procentage = getProcetage(merge_index, totallAmount);
-				sendProgress(procentage, "Merging");
-
-			}
-			if (finalIMG != null)
-				finalIMG = imagemerger.joinVertical(finalIMG, rowIMG, 1);
-			else
-				finalIMG = rowIMG;
+				flatGrid[index] = pictures[y][x].getPath();
+				index++;
+			}			
 		}
 
+		File finalImg = new File(project_name + ".png");
+		p4j.mergeImages(flatGrid, finalImg, horisisontal);
+		
 		sendProgress(70, "Visualizing");
 		System.out.println("Done Mergin images");
-		System.out.println("Writing to file");
-		File image_location = new File(project_name + ".png");
-		ImageIO.write(finalIMG, "png", image_location);
+		deleteImages(flatGrid);
 		sendProgress(80, "Visualizing");
-		return image_location;
+		return finalImg;
 	}
 
+	public void deleteImages(String[] images) {
+		for (int i = 0; i < images.length; i++) {
+			new File(images[i]).delete();
+		}
+	}
+	
 	public int getProcetage(int a, int b) {
 		return (int) (a * 100.0f) / b;
 	}
