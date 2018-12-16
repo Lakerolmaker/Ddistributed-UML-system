@@ -172,7 +172,7 @@ public class NODE_Visualizer extends Application {
 
 				System.out.println("Visualizing comeplete");
 
-				sendProgress(90, "Visualizing");
+				sendProgress(100, "Visualizing");
 
 				try {
 					tcp.client.sendFile(uml_picture);
@@ -185,7 +185,7 @@ public class NODE_Visualizer extends Application {
 				cleanup();
 				System.out.println("Cleanup comeplete");
 
-				sendProgress(100, "Visualizing");
+				
 			}
 
 		});

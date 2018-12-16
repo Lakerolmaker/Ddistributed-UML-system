@@ -9,23 +9,33 @@ import java.util.concurrent.TimeUnit;
 
 import javax.swing.JOptionPane;
 import com.google.gson.Gson;
+import com.sun.javafx.geom.BaseBounds;
+import com.sun.javafx.geom.transform.BaseTransform;
+import com.sun.javafx.scene.BoundsAccessor;
+
 import FileClasses.Progress;
 import TCP.RunnableArg;
 import TCP.TCP;
 import TCP.ZIP;
 import javafx.animation.FadeTransition;
+import javafx.animation.KeyFrame;
+import javafx.animation.Timeline;
 import javafx.application.Platform;
+import javafx.beans.property.ObjectProperty;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.geometry.Insets;
 import javafx.scene.Cursor;
+import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.OverrunStyle;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextArea;
+import javafx.scene.effect.BoxBlur;
+import javafx.scene.effect.Effect;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Background;
@@ -46,14 +56,15 @@ public class MainController implements Initializable {
 	TCP tcp = new TCP();
 	TCP progressServer = new TCP();
 	TCP nameServer = new TCP();
+	
 	ZIP zip = new ZIP();
+	
 	RingProgressIndicator progressbar;
 	GridPane gridpane = new GridPane();
-	File selectedFile = null;
+	BoxBlur bb = new BoxBlur();
 
-	public long StartTime = 0;
-	public long endTime = 0;
-	public long fileSize = 0;
+
+	File selectedFile = null;
 
 	@FXML
 	private TextArea textArea;
@@ -76,17 +87,50 @@ public class MainController implements Initializable {
 	@FXML
 	private Label Project_name_label;
 
-	// test the text area
-	public void addNumbers(ActionEvent event) {
-		int a = 4, b = 6;
-		int x = a + b;
-		textArea.setText(Integer.toString(x));
+	@Override // it initialises
+	public void initialize(URL arg0, ResourceBundle arg1) {
+		
+		//: hides the progress indicators from the beginning;
+		hideProgress();
+		blurBox();
+		
+		//: Adds the blur config to the progress indicators
+		Project_name_label.setEffect(bb);
+		Progress_label.setEffect(bb);
+
+		//: connfig for the button scrollbar
+		scrollbar.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+		scrollbar.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
+		scrollbar.vvalueProperty().bind(gridpane.heightProperty());
+
+		//: config for the grid of buttons
+		gridpane.setVgap(20);
+		gridpane.setLayoutX(10);
+		gridpane.setLayoutY(9);
+		scrollpane.getChildren().add(gridpane);
+
+		String colour = "abcdef";
+		linkPane.setBackground(
+				new Background(new BackgroundFill(Color.web("#" + colour), CornerRadii.EMPTY, Insets.EMPTY)));
+		progressbar = new RingProgressIndicator();
+		progressbar.setRingWidth(30);
+		progressbar.makeIndeterminate();
+
+		//: Adds the progress bar to the window
+		stackPane.getChildren().add(progressbar);
+
+		//: Initilize the tcp connections.
+		try {
+			initTCP();
+		} catch (Exception e) {
+			System.err.println("Could not initialize the tcp : " + e.getMessage());
+		}
+
 	}
 
 	DirectoryChooser directoryChooser = new DirectoryChooser();
 
-	int index = 0;
-
+	int buttonIndex = 0;
 	public void addbutton(File file) {
 
 		Button newbtn = new Button();
@@ -114,20 +158,99 @@ public class MainController implements Initializable {
 		});
 
 		newbtn.setOpacity(0);
-		gridpane.add(newbtn, 0, index);
-		
+		gridpane.add(newbtn, 0, buttonIndex);
+
 		fadeIn(newbtn);
 
 		scrollpane.setPrefHeight(gridpane.getHeight());
 
-		index++;
+		buttonIndex++;
 	}
-
+	
+	public boolean isVisable() {
+		return Progress_label.isVisible();
+	}
+	
+	//: Fade in a button.
 	public void fadeIn(Button btn) {
 		FadeTransition ft = new FadeTransition(Duration.millis(1200), btn);
 		ft.setFromValue(0.0);
 		ft.setToValue(1.0);
 		ft.play();
+	}
+
+	//: blur the progress boxes
+	public void blurBox() {
+		addBlur();
+		Timeline timer = new Timeline(new KeyFrame(Duration.millis(10), new EventHandler<ActionEvent>() {
+
+			@Override
+			public void handle(ActionEvent event) {
+				bb.setWidth(BlurCounter.getCounter());
+				BlurCounter.increase();
+			}
+
+		}));
+
+		timer.setCycleCount(100);
+		timer.play();
+
+		timer.onFinishedProperty().set(new EventHandler<ActionEvent>() {
+
+			@Override
+			public void handle(ActionEvent event) {
+				hideProgress();
+			}
+
+		});
+
+	}
+
+	//: unblur the boxes
+	public void unBlurBox() {
+
+		showProgress();
+		Timeline timer = new Timeline(new KeyFrame(Duration.millis(10), new EventHandler<ActionEvent>() {
+
+			@Override
+			public void handle(ActionEvent event) {
+				bb.setWidth(BlurCounter.getCounter());
+				BlurCounter.decrease();
+			}
+
+		}));
+
+		timer.setCycleCount(100);
+		timer.play();
+
+		timer.onFinishedProperty().set(new EventHandler<ActionEvent>() {
+
+			@Override
+			public void handle(ActionEvent event) {
+				removeBlur();
+			}
+
+		});
+	}
+
+	//: Removes the blurr effect
+	public void addBlur() {
+		bb.setIterations(1);
+	}
+
+	public void hideProgress() {
+		Progress_label.setVisible(false);
+		Project_name_label.setVisible(false);
+	}
+	
+	public void showProgress() {
+		Progress_label.setVisible(true);
+		Project_name_label.setVisible(true);
+	}
+	
+	//: Adds the blur effect
+	public void removeBlur() {
+		bb.setIterations(0);
 	}
 
 	public void selectFile() throws Exception {
@@ -206,7 +329,7 @@ public class MainController implements Initializable {
 	}
 
 	public String getTimeEnding(long seconds) {
-		//TimeUnit.HOURS.
+		// TimeUnit.HOURS.
 		if (seconds < 60) {
 			return seconds + " Seconds";
 		} else if (seconds < 3600) {
@@ -215,13 +338,13 @@ public class MainController implements Initializable {
 			return seconds / 3600 + " Hours";
 		} else if (seconds < 86400) {
 			return seconds / 31536000 + " Days";
-		}else if (seconds > 31536000) {
+		} else if (seconds > 31536000) {
 			return seconds / 31536000 + " Years";
 		}
 		return null;
-		
+
 	}
-	
+
 	public void sendFile() {
 
 		if (selectedFile != null) {
@@ -239,36 +362,6 @@ public class MainController implements Initializable {
 
 		} else {
 			popup("Error", "Please select a project");
-		}
-
-	}
-
-	@Override // it initialises
-	public void initialize(URL arg0, ResourceBundle arg1) {
-
-		scrollbar.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
-		scrollbar.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
-
-		scrollbar.vvalueProperty().bind(gridpane.heightProperty());
-
-		gridpane.setVgap(20);
-		gridpane.setLayoutX(10);
-		gridpane.setLayoutY(9);
-		scrollpane.getChildren().add(gridpane);
-
-		String colour = "abcdef";
-		linkPane.setBackground(
-				new Background(new BackgroundFill(Color.web("#" + colour), CornerRadii.EMPTY, Insets.EMPTY)));
-		progressbar = new RingProgressIndicator();
-		progressbar.setRingWidth(30);
-		progressbar.makeIndeterminate();
-
-		stackPane.getChildren().add(progressbar);
-
-		try {
-			initTCP();
-		} catch (Exception e) {
-			System.err.println("Could not initialize the tcp : " + e.getMessage());
 		}
 
 	}
@@ -296,13 +389,18 @@ public class MainController implements Initializable {
 		System.out.println("ETA contant : " + bytesPernano);
 
 	}
+
+	public long ETAConstant = 757289;
 	
-	long ETAConstant = 757289;	
+	public long StartTime = 0;
+	public long endTime = 0;
+	public long fileSize = 0;
+
 	public long getEAT(long bytes) {
 		long nanoSec = bytes * ETAConstant;
 		return getSeconds(nanoSec);
 	}
-	
+
 	public long getSeconds(long nanoSecs) {
 		return nanoSecs / 1000000000;
 	}
@@ -313,6 +411,8 @@ public class MainController implements Initializable {
 
 			addbutton(file);
 			printTotalltime();
+			blurBox();
+			resetProgressBar();
 
 		});
 
@@ -324,9 +424,11 @@ public class MainController implements Initializable {
 	}
 
 	public void addProgress_Text(String progress) {
-
+		
 		Progress_label.setText(progress);
-
+		
+		if(!isVisable()) 
+			unBlurBox();
 	}
 
 	public void setProgressBar(int progress) {
@@ -335,6 +437,10 @@ public class MainController implements Initializable {
 
 	}
 
+	public void resetProgressBar() {
+		setProgressBar(-1);
+	}
+	
 	public void openFile(File file) {
 		Desktop dt = Desktop.getDesktop();
 
@@ -344,13 +450,6 @@ public class MainController implements Initializable {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-	}
-
-	public void increase() {
-		int progress = progressbar.getProgress();
-		progress += 1;
-
-		progressbar.setProgress(progress);
 	}
 
 	public void initTCP() throws Exception {
@@ -404,6 +503,7 @@ public class MainController implements Initializable {
 				});
 
 			}
+		
 		});
 		progressServer.server.addToNetwork("progress_server");
 
