@@ -46,15 +46,13 @@ public class NODE_parser {
 
 	public static void main(String[] args) throws Exception {
 
-		
-
 		tcp.server.initializeServer();
 
 		tcp.server.startFileServer(new RunnableArg<File>() {
 
 			@Override
 			public void run() {
-				
+
 				try {
 					tcp.client.connectTNetwork("visualizer");
 				} catch (Exception e) {
@@ -73,7 +71,7 @@ public class NODE_parser {
 				UMLPackage project = Parse(unzipedFile);
 
 				sendProjectName(project.getName());
-				
+
 				sendProgress(80, "Parsing");
 
 				Gson jsonParser = new Gson();
@@ -139,27 +137,30 @@ public class NODE_parser {
 		}
 	}
 
-	public static UMLPackage Parse(File file) {
-
+	public static UMLPackage Parse(File file) { // Parse a project folder into a single Java class
+		// Initiate the Java class
 		UMLPackage UMLpackage = new UMLPackage();
 		UMLpackage.name = file.getName();
-
-		String url = file.getName();
-
+		// Get all children files/folders inside the project folder
 		File[] files = file.listFiles();
 
 		for (File newFile : files) {
+			// If the component in the array is a folder, parse the folder and put it in the
+			// Java class
 			if ((newFile.isDirectory()) && (!newFile.isHidden())) {
 				UMLPackage newPackage = Parse(newFile);
 				UMLpackage.addPackage(newPackage);
-
+				// If the component in the array is a file, parse the file and put it in the
+				// Java class
 			} else if ((newFile.isFile() && (!newFile.isHidden()) && (getFileType(newFile).equals(".java")))) {
 				UMLClass newClass = parseFile(newFile);
 				UMLpackage.classes.add(newClass);
 			}
 		}
-		
+
 		for (File newFile : files) {
+			// If the component in the array is a file, add all relationships to the Java
+			// class
 			if ((newFile.isFile() && (!newFile.isHidden()) && (getFileType(newFile).equals(".java")))) {
 				try {
 					createEdges(newFile, UMLpackage);
@@ -169,7 +170,7 @@ public class NODE_parser {
 				}
 			}
 		}
-		
+
 		for (Relationship relationship : UMLpackage.getRelationships()) {
 			if (relationship.getType() != null) {
 				if (relationship.getType() == RelaType.ASSOCIATION) {
@@ -184,7 +185,7 @@ public class NODE_parser {
 				}
 			}
 		}
-		
+
 		return UMLpackage;
 
 	}
@@ -198,7 +199,7 @@ public class NODE_parser {
 		return name.substring(lastIndexOf);
 	}
 
-	public static UMLClass parseFile(File file) {
+	public static UMLClass parseFile(File file) { // Parse a .java file type to a class
 
 		UMLClass UMLclass = new UMLClass();
 
@@ -261,7 +262,8 @@ public class NODE_parser {
 	}
 
 	private static ArrayList<Method> methodVistor(File file) throws Exception {
-
+		// Find all method declarations in a java file and parse their names and types
+		// into the Java class
 		ArrayList<Method> Methods = new ArrayList<Method>();
 
 		VoidVisitorAdapter<Object> methodAdapter = new VoidVisitorAdapter<Object>() {
@@ -302,7 +304,8 @@ public class NODE_parser {
 	}
 
 	private static Variable classVisitor(File file) throws Exception {
-
+		// Find all class declarations in a java file and parse their names into the
+		// Java class
 		Variable var = new Variable();
 
 		VoidVisitorAdapter<Object> methodAdapter = new VoidVisitorAdapter<Object>() {
@@ -324,7 +327,8 @@ public class NODE_parser {
 	}
 
 	private static ArrayList<Variable> variableVisitor(File file) throws Exception {
-
+		// Find all variables in a java file and parse their names and types into the
+		// Java class
 		ArrayList<Variable> Variables = new ArrayList<Variable>();
 
 		VoidVisitorAdapter variableAdapter = new VoidVisitorAdapter<Object>() {
@@ -365,6 +369,8 @@ public class NODE_parser {
 	}
 
 	private static void createEdges(File file, UMLPackage umlPackage) throws Exception {
+		// Get all relationships in a folder project and parse them into a single Java
+		// class
 		CompilationUnit cu = getCompilationUnit(file);
 		List<TypeDeclaration<?>> td = cu.getTypes();
 		for (TypeDeclaration<?> typeDeclaration : td) {
@@ -374,6 +380,7 @@ public class NODE_parser {
 	}
 
 	private static void createAssociationEdges(ClassOrInterfaceDeclaration typeDeclaration, UMLPackage umlPackage) {
+		// Find all relationships of type Association
 		createAssociationEdgeForConstructor(typeDeclaration, umlPackage);
 		UMLClass umlClass = umlPackage.getClassByName(typeDeclaration.getNameAsString());
 		List<BodyDeclaration<?>> methods = typeDeclaration.getMembers();
@@ -411,6 +418,7 @@ public class NODE_parser {
 
 	private static void createAssociationEdgeForConstructor(ClassOrInterfaceDeclaration typeDeclaration,
 			UMLPackage umlPackage) {
+		// Find all relationships of type Association for constructor
 		UMLClass umlClass = umlPackage.getClassByName(typeDeclaration.getNameAsString());
 		List<BodyDeclaration<?>> methods = typeDeclaration.getMembers();
 		for (BodyDeclaration bodyDeclaration : methods) {
@@ -443,6 +451,7 @@ public class NODE_parser {
 
 	private static void createExtendsImplementsEdges(ClassOrInterfaceDeclaration typeDeclaration,
 			UMLPackage umlPackage) {
+		// Find all relationships of type Extends
 		List<ClassOrInterfaceType> extendsList = typeDeclaration.getExtendedTypes();
 		if (extendsList != null) {
 			for (ClassOrInterfaceType classOrInterfaceType : extendsList) {
@@ -454,6 +463,7 @@ public class NODE_parser {
 				}
 			}
 		}
+		// Find all relationships of type Implements
 		List<ClassOrInterfaceType> implementsList = typeDeclaration.getImplementedTypes();
 		if (implementsList != null) {
 			for (ClassOrInterfaceType classOrInterfaceType : implementsList) {
