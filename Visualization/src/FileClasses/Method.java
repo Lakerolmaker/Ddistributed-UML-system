@@ -8,5 +8,4 @@ public class Method {
 	public String returnType;
 	public ArrayList<Variable> parameters;
 	
-	
 }
