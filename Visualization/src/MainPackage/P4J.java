@@ -18,6 +18,13 @@ import ar.com.hjg.pngj.chunks.ChunkCopyBehaviour;
 import ar.com.hjg.pngj.chunks.ChunkLoadBehaviour;
 import ar.com.hjg.pngj.chunks.PngChunkTextVar;
 
+/*
+ * 
+ * A class for merging images,  does not have an limit
+ * code is taken from the pngj library.
+ */
+
+
 public class P4J {
 
 	public TCP progress_tcp = new TCP();

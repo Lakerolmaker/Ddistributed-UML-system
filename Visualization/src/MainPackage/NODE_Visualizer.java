@@ -30,6 +30,15 @@ import javafx.scene.canvas.*;
 import javafx.scene.image.WritableImage;
 import javafx.scene.paint.Color;
 
+/*
+ * 
+ * Main class for drawing/visualizing the UML diagram
+ * also saves the diagram as a picture.
+ * 
+ */
+
+
+
 public class NODE_Visualizer extends Application {
 
 	public static String project_name = "UMLFromJava";

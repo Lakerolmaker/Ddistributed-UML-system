@@ -37,6 +37,13 @@ import TCP.TCP;
 import TCP.TCP_data;
 import TCP.ZIP;
 
+/*
+ * 
+ * A class for parsing a java project folder into a preset format found in the FilClass folder
+ * 
+ */
+
+
 public class NODE_parser {
 
 	public static TCP tcp = new TCP();

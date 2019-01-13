@@ -9,6 +9,13 @@ import java.io.IOException;
 
 import javax.imageio.ImageIO;
 
+/*
+ * 
+ * A class for merging images,  does have an limit
+ * 
+ */
+
+
 public class ImageMerger {
 
 	public BufferedImage joinHorizontal(BufferedImage i1, BufferedImage i2, int mergeWidth) {

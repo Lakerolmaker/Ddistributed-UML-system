@@ -10,6 +10,13 @@ import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 
+/*
+ * 
+ * A class symbolsing the class inside a UML diagram
+ * Contains mthods for drawing the class as well as to keep track of mesurments.
+ * 
+ */
+
 public class DrawableCLass {
 
 	

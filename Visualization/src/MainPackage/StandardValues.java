@@ -2,6 +2,15 @@ package MainPackage;
 
 import javafx.scene.text.Font;
 
+/*
+ * 
+ * A class containing the values that govern some of the aspects UML diagram
+ * like size, width , scaling, font
+ * 
+ * 
+ */
+
+
 public class StandardValues {
 
 	//: standard height and width of the classes
