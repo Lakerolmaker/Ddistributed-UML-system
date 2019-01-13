@@ -13,6 +13,7 @@ The purpose of this system is to analyzse a java project folder and produces a U
 - Makings thing easier to see in an overview format
 - Improves accessabilty by exporting the outcome as a picture.
 
+
 #### Structure of systems directory
 
     Root/
@@ -41,3 +42,6 @@ The purpose of this system is to analyzse a java project folder and produces a U
 6. Launch the NODE_parser.java file
 7. Launch the NODE_client.java file
 ```
+If you have followed these steps you should have a window simmilar this:
+
+[![](client)](https://raw.githubusercontent.com/Lakerolmaker/MiniProject-DistributedSystem/master/client.PNG?token=AP7ZkgW2-1JHUetLmXsjI0phqjoMfa7wks5cRHhcwA%3D%3D)
