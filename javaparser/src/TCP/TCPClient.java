@@ -58,8 +58,16 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
-public class TCPClient {
 
+/*
+ * 
+ *  A class for the client side of the TCP connection
+ * 
+ *
+ */
+
+public class TCPClient {
+	
 	public Socket socket = null;
 	private PostClass post = new PostClass();
 	ZIP zip = new ZIP();

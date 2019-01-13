@@ -18,6 +18,13 @@ import java.util.zip.ZipFile;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
 
+
+/*
+ * 
+ * A class for ziping a folder or file
+ * 
+ */
+
 public class ZIP {
 
 	public String CurrentDir = System.getProperty("user.dir");

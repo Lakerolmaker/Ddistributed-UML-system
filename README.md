@@ -60,3 +60,31 @@ Here is an example image, that was created by using this project as an imput.
 [example image](MiniProject-DistributedSystem.png "example image") ( the image is quite large , so it doesn't load instantly)
 
 As you can see the image sizes can be quite large, if you have a large Java project. Here is another exmaple where a extremly large project was analyzed. [example image](Unit-01.png "example image")
+
+#### Directory Logic:
+
+In the root folder there is three folders which together comprisses the entire project.
+
+    Root/
+         Visualization/
+         javaparser/
+         client/
+
+Each of these folders acts as an independent project, and can be run on the different computers,
+but they have to be on the same network.
+
+Each of the folders share identic classes to communcate with each other. They shared classes are stored
+inside folders.
+The folders that are the same accross the projects are **TCP** and **FileClasses**.
+They are structured like this:
+
+    Root/
+         one of the three folders/
+                                    src/
+                                        FileClasses/
+                                        TCP/
+
+
+#### Documentation:
+Links to documents containing documentation: [SRS](MiniProject-DistributedSystem.png "SRS"), [SDS](MiniProject-DistributedSystem.png "SDS")
+Link to contribution : [Trello](https://trello.com/miniprojectdistributedsystem "Trello")

@@ -2,6 +2,10 @@ package TCP;
 
 public class TCP_data {
 
+	
+	//: A class used for sending data to another computer.
+	
+	
 	public String metaData;
 	public String data;
 	

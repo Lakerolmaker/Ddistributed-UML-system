@@ -9,6 +9,8 @@ import java.util.ArrayList;
 
 public class PostClass {
 
+	//: A class for sending a post request ove the internet
+	
 	public String URL;
 	public ArrayList<URLParamater> postParamaters = new ArrayList<URLParamater>(); 
 	

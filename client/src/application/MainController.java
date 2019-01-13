@@ -53,6 +53,8 @@ import ui.RingProgressIndicator;
 
 public class MainController implements Initializable {
 
+	//: the controller which handles all logic for the client
+	
 	TCP tcp = new TCP();
 	TCP progressServer = new TCP();
 	TCP nameServer = new TCP();

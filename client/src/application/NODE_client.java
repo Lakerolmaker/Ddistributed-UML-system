@@ -9,6 +9,8 @@ import javafx.scene.layout.AnchorPane;
 
 public class NODE_client extends Application {
 	
+	//: The client file, which laucnhes a javafx window
+	
 	public static  Stage myStage;
 	
 	public static void main(String[] args) {
