@@ -11,7 +11,7 @@ The purpose of this system is to analyzse a java project folder and produces a U
 #### Benefits of the system
 
 - Makings thing easier to see in an overview format
-- Improves transparency by exporting the outcome as a picture.
+- Improves accessabilty by exporting the outcome as a picture.
 
 #### Structure of systems directory
 
@@ -33,14 +33,11 @@ The purpose of this system is to analyzse a java project folder and produces a U
 #### How to run the program
 
 ```javascript
-Make sure that you have access to an internet connection
-Start a IDE of your choice
-Import the root folder of the project named ( MiniProject-DistributedSystem )
-Locate the three Java files shown in the in the diagram above in the IDE
-Launch the NODE_Visualizer.java file
-Launch the NODE_parser.java file
-Launch the NODE_client.java file
-
-
-
+1. Make sure that you have access to an internet connection
+2. Start a IDE of your choice
+3. Import the root folder of the project named ( MiniProject-DistributedSystem )
+4. Locate the three Java files shown in the in the diagram above in the IDE
+5. Launch the NODE_Visualizer.java file
+6. Launch the NODE_parser.java file
+7. Launch the NODE_client.java file
 ```
