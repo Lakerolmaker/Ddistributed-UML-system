@@ -86,5 +86,5 @@ They are structured like this:
 
 
 #### Documentation:
-Links to documents containing documentation: [SRS](MiniProject-DistributedSystem.png "SRS"), [SDS](MiniProject-DistributedSystem.png "SDS")
+Links to documents containing documentation: [SRS](https://docs.google.com/document/d/1Wwn2RqZmn259WfOilRG2IXSd6VN5sj1rSRKUBSd7UUc/edit?usp=sharing "SRS"), [SDS](https://docs.google.com/document/d/1_HadbllJ5hzLXcAjjAkPGkAUR_MGLAEJLzke6ynMXKY/edit?usp=sharing "SDS")
 Link to contribution : [Trello](https://trello.com/miniprojectdistributedsystem "Trello")

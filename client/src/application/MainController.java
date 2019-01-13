@@ -379,7 +379,7 @@ public class MainController implements Initializable {
 		System.out.println("Totall time in nano-seconds : " + nanoSeconds);
 		System.out.println("Totall time in seconds : " + seconds);
 
-		printETAConstant(nanoSeconds);
+		//printETAConstant(nanoSeconds);
 	}
 
 	public void printETAConstant(long nanoSeconds) {
