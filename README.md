@@ -75,7 +75,7 @@ but they have to be on the same network.
 
 Each of the folders share identic classes to communcate with each other. They shared classes are stored
 inside folders.
-The folders that are the same accross the projects are [TCP](client/src/TCP "TCP") and [FileClasses](client/src/TCP "FileClasses").
+The folders that are the same accross the projects are [TCP](client/src/TCP "TCP") and [FileClasses](client/src/FileClasses "FileClasses").
 They are structured like this:
 
     Root/
