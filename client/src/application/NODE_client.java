@@ -15,6 +15,7 @@ public class NODE_client extends Application {
 	
 	public static void main(String[] args) {
 		launch(args);
+		// hello
 	}
 		
 	
