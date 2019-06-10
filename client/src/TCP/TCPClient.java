@@ -94,7 +94,7 @@ public class TCPClient {
 		}
 	}
 
-	public void sendFile(File file){
+	public void send(File file){
 
 		// : if the file is directory , it is ziped and sent.
 		if (file.isDirectory()) {
@@ -102,7 +102,7 @@ public class TCPClient {
 			File compressedFile = null;
 			try {
 				compressedFile = zip.compress(file);
-				send_a_file(compressedFile);
+				this.send_file(compressedFile);
 			}catch(Exception e){
 				System.err.println("TCP-Client - Could not send file");
 			}finally {
@@ -113,7 +113,7 @@ public class TCPClient {
 			// : if it is a normal file it is send normally.
 		} else if (file.isFile()) {
 			try {
-				send_a_file(file);
+				send_file(file);
 			}catch(Exception e){
 				System.err.println("TCP-Client - Could not send file");
 			}
@@ -121,7 +121,7 @@ public class TCPClient {
 
 	}
 
-	private void send_a_file(File file) throws IOException {
+	private void send_file(File file) throws IOException {
 		BufferedOutputStream out = new BufferedOutputStream(socket.getOutputStream());
 		try (DataOutputStream d = new DataOutputStream(out)) {
 			d.writeUTF(file.getName());

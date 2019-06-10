@@ -360,7 +360,7 @@ public class MainController implements Initializable {
 			fileSize = folderSize(selectedFile);
 			StartTime = System.nanoTime();
 
-			tcp.client.sendFile(selectedFile);
+			tcp.client.send(selectedFile);
 
 		} else {
 			popup("Error", "Please select a project");
