@@ -461,8 +461,7 @@ public class MainController implements Initializable {
 
 			@Override
 			public void run() {
-				File file = this.getArg();
-
+				File file = this.getData();
 				addfile(file);
 			}
 
@@ -477,12 +476,12 @@ public class MainController implements Initializable {
 	public void ProjectName_Server() throws Exception {
 
 		nameServer.server.initializeServer();
-		nameServer.server.start(new RunnableArg<String>() {
+		nameServer.server.startTextServer(new RunnableArg<String>() {
 
 			@Override
 			public void run() {
 				Platform.runLater(() -> {
-					addProjectName(this.getArg());
+					addProjectName(this.getData());
 				});
 			}
 		});
@@ -492,12 +491,12 @@ public class MainController implements Initializable {
 	public void progress_Server() throws Exception {
 
 		progressServer.server.initializeServer();
-		progressServer.server.start(new RunnableArg<String>() {
+		progressServer.server.startTextServer(new RunnableArg<String>() {
 
 			@Override
 			public void run() {
 				Gson gson = new Gson();
-				Progress progress = gson.fromJson(this.getArg(), Progress.class);
+				Progress progress = gson.fromJson(this.getData(), Progress.class);
 
 				Platform.runLater(() -> {
 					addProgress_Text(progress.stage);

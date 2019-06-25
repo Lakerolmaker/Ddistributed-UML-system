@@ -3,6 +3,7 @@ package TCP;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.DataInputStream;
 
 /*
@@ -20,6 +21,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.io.RandomAccessFile;
 import java.net.InetAddress;
@@ -50,8 +52,7 @@ import javafx.beans.value.ObservableValue;
 
 /*
  * 
- *  A class for the server side of the TCP connection
- * 
+ *  A class for the server side of the TCP connection 
  *
  */
 
@@ -60,12 +61,29 @@ public class TCPServer {
 	public ServerSocket server = null;
 	public PostClass post = new PostClass();
 	ZIP zip = new ZIP();
-	public boolean showOutput = false;
 
+	public TCPServer() {
+		
+	}
+	
+	public TCPServer(InetSocketAddress adress) {
+		this.initializeServer(adress.getAddress(), adress.getPort());
+	}
+	
+	
+	//: finds a free port and then adds a socket to the ip-adress of the system
 	public void initializeServer() throws Exception {
 		int port = findFreePort();
 		InetAddress adress = InetAddress.getLocalHost();
 		server = new ServerSocket(port, 10, adress);
+	}
+	
+	public void initializeServer(InetAddress address, int port){
+		try {
+			server = new ServerSocket(port, 10, address);
+		} catch (IOException e) {
+			System.err.println("Could not create server TCP on - " + address.toString() + ":" + port);
+		}
 	}
 
 	public String getIp() {
@@ -75,8 +93,12 @@ public class TCPServer {
 	public int getPort() {
 		return server.getLocalPort();
 	}
+	
+	public InetSocketAddress getAdress() {
+		return new InetSocketAddress(this.getIp(), this.getPort());
+	}
 
-	public void start(RunnableArg<String> invocation) throws Exception {
+	public void startTextServer(RunnableArg<String> invocation) {
 
 		Runnable serverCode = new Runnable() {
 
@@ -86,30 +108,28 @@ public class TCPServer {
 				while (true) {
 
 					try {
-
 						Socket connectionSocket = server.accept();
 
 						InputStream strm = connectionSocket.getInputStream();
 						InputStreamReader in = new InputStreamReader(strm);
 						BufferedReader br = new BufferedReader(in);
-
 						String dataString = br.readLine();
-						if (showOutput)
-							System.out.println(
-									"TCP-Server - Recived : " + dataString.getBytes().length + " bytes of data");
-
-						invocation.setArg(dataString);
+						
+						OutputStream os = connectionSocket.getOutputStream();
+		                OutputStreamWriter osw = new OutputStreamWriter(os);
+		                BufferedWriter bw = new BufferedWriter(osw);
+		                String return_message = "ok" + "\n";
+		                bw.write(return_message);
+		                bw.flush();
+						
+						invocation.addData(dataString);
 						invocation.run();
 
 					} catch (Exception e) {
-						// TODO Auto-generated catch block
 						e.printStackTrace();
 					}
-
 				}
-
 			}
-
 		};
 
 		new Thread(serverCode).start();
@@ -125,14 +145,13 @@ public class TCPServer {
 			public void run() {
 
 				while (true) {
-					Socket socket;
+					
 					try {
 						
-						socket = server.accept();
-						
+						Socket socket = server.accept();
 						File file = saveFile(socket);
 
-						invocation.setArg(file);
+						invocation.addData(file);
 						invocation.run();
 
 					} catch (Exception e) {
@@ -147,38 +166,11 @@ public class TCPServer {
 		};
 
 		new Thread(serverCode).start();
-
 		System.out.println("TCP file-server running on - " + this.getIp() + ":" + this.getPort());
 
 	}
-
-	public File savedir(Socket socket) throws Exception {
-		String CurrentDir = System.getProperty("user.dir");
-		String newFilePath = CurrentDir + "/newfile.zip";
-		File file = new File(newFilePath);
-
-		FileOutputStream fos = null;
-		BufferedOutputStream bos = null;
-		InputStream is = null;
-		try {
-			is = socket.getInputStream();
-			fos = new FileOutputStream(file);
-			bos = new BufferedOutputStream(fos);
-			int c = 0;
-			byte[] b = new byte[2048];
-			while ((c = is.read(b)) > 0) {
-				bos.write(b, 0, c);
-			}
-		} finally {
-			if (is != null)
-				is.close();
-			if (bos != null)
-				bos.close();
-		}
-		return file;
-
-	}
-
+	
+	//: Saves a file to file when receiving it.
 	public File saveFile(Socket socket) throws Exception {
 		BufferedInputStream in = new BufferedInputStream(socket.getInputStream());
 		String fileName = null;
@@ -190,7 +182,7 @@ public class TCPServer {
 		} catch (Exception e) {
 		}
 		return newFile;
-	}
+	} 
 
 	private static int findFreePort() {
 		ServerSocket socket = null;
@@ -213,7 +205,7 @@ public class TCPServer {
 				}
 			}
 		}
-		throw new IllegalStateException("Could not find a free TCP/IP port to start embedded Jetty HTTP Server on");
+		throw new IllegalStateException("Could not find a free TCP/IP port");
 	}
 
 	public void addToNetwork(String name) throws Exception {
@@ -229,10 +221,6 @@ public class TCPServer {
 		post.URL = "http://api.lakerolmaker.com/network_lookup.php";
 
 		post.post();
-	}
-
-	public void showOutput(Boolean value) {
-		this.showOutput = value;
 	}
 
 }

@@ -58,27 +58,46 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
-
 /*
  * 
  *  A class for the client side of the TCP connection
  * 
- *
  */
 
 public class TCPClient {
-	
+
 	public Socket socket = null;
 	private PostClass post = new PostClass();
 	ZIP zip = new ZIP();
-	private RunnableArg<String> connectInvocation;
-	public boolean showOutput = false;
 
-	public void connect(String ipadress, int port) throws UnknownHostException, IOException {
-		socket = new Socket(ipadress, port);
+	public void connect(String ipadress, int port) {
+		try {
+			socket = new Socket(ipadress, port);
+		} catch (Exception e) {
+			System.err.println("Could not connect to TCP server. - " + ipadress + ":" + port);
+		}
+	}
+	
+	public void connect(InetSocketAddress adress) {
+		try {
+			socket = new Socket(adress.getAddress(), adress.getPort());
+		} catch (Exception e) {
+			System.err.println("Could not connect to TCP server. - " + adress.getAddress() + ":" + adress.getPort());
+		}
 	}
 
-	public void send(String message) {
+	public void connect(String ipadress, int port, Runnable run) {
+		try {
+			socket = new Socket(ipadress, port);
+			if (socket.isConnected()) {
+				run.run();
+			}
+		} catch (Exception e) {
+			System.err.println("Could not connect to TCP server. - " + ipadress + ":" + port);
+		}
+	}
+
+	public String send(String message) {
 
 		OutputStreamWriter out;
 		try {
@@ -88,33 +107,40 @@ public class TCPClient {
 			BufferedWriter bw = new BufferedWriter(osw);
 			osw.write(message + "\n");
 			osw.flush();
-			if (showOutput)
-				System.out.println("TCP-Client - Wrote " + message.getBytes().length + " bytes to the server");
+			
+			//Get the return message from the server
+            InputStream is = socket.getInputStream();
+            InputStreamReader isr = new InputStreamReader(is);
+            BufferedReader br = new BufferedReader(isr);
+            String returnMessage = br.readLine();
+            return returnMessage;
+			
 		} catch (IOException e) {
+			return "";
 		}
 	}
 
-	public void send(File file){
+	public void send(File file) {
 
-		// : if the file is directory , it is ziped and sent.
+		// : if the file is directory , it is first ziped and then sent.
 		if (file.isDirectory()) {
 
 			File compressedFile = null;
 			try {
 				compressedFile = zip.compress(file);
 				this.send_file(compressedFile);
-			}catch(Exception e){
+			} catch (Exception e) {
 				System.err.println("TCP-Client - Could not send file");
-			}finally {
+			} finally {
 				// : deletes the ziped file.
 				compressedFile.delete();
 			}
 
-			// : if it is a normal file it is send normally.
+			// : if it is a file it is sent normally.
 		} else if (file.isFile()) {
 			try {
 				send_file(file);
-			}catch(Exception e){
+			} catch (Exception e) {
 				System.err.println("TCP-Client - Could not send file");
 			}
 		}
@@ -127,8 +153,6 @@ public class TCPClient {
 			d.writeUTF(file.getName());
 			Files.copy(file.toPath(), d);
 		}
-		if (showOutput)
-			System.out.println("TCP-client - Sent a file ");
 	}
 
 	public Socket getSocket() {
@@ -164,29 +188,5 @@ public class TCPClient {
 		int port = client.get("port").getAsInt();
 
 		this.connect(ip, port);
-		runInvoation();
 	}
-
-	public void runInvoation() {
-		if (this.connectInvocation != null) {
-			this.connectInvocation.run();
-		}
-	}
-
-	public void onConnect(RunnableArg<String> invocation) {
-
-			this.connectInvocation = invocation;
-	}
-
-	public boolean isConnected() {
-		if(this.socket != null)
-			return this.socket.isConnected();
-		else
-			return false;			
-	}
-
-	public void showOutput(Boolean value) {
-		this.showOutput = value;
-	}
-
 }

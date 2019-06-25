@@ -19,7 +19,7 @@ import TCP.RunnableArg;
 
 public class UDPServer {
 
-	public void start(int port, RunnableArg<String> invocation) throws Exception {
+	public void start(int port, RunnableArg invocation) throws SocketException{
 
 		Runnable serverCode = new Runnable() {
 
@@ -36,7 +36,7 @@ public class UDPServer {
 						String message = getMessage(packet);
 
 						// : Adds the message to the invocation queue
-						invocation.addArgs(message);
+						invocation.addData(message);
 
 						InetAddress address = packet.getAddress();
 						int port = packet.getPort();
@@ -57,7 +57,7 @@ public class UDPServer {
 		};
 
 		new Thread(serverCode).start();
-		System.out.println("UDP text-server running");
+		System.out.println("UDP text-server running on port - " + port);
 
 	}
 

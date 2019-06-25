@@ -1,6 +1,5 @@
 package application;
 
-
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.stage.Stage;
@@ -9,7 +8,7 @@ import javafx.scene.layout.AnchorPane;
 
 public class NODE_client extends Application {
 
-	// : The client file, which laucnhes a javafx window
+	// : The client file, which launch a javafx window
 	public static Stage myStage;
 
 	public static void main(String[] args) throws Exception {
